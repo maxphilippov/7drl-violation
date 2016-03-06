@@ -59,7 +59,7 @@ public:
     
     void intro_sequence()
     {
-        interactions.add(InteractionType::Travel);
+        interactions.add_travel(0);
         time.add_job(4);
         
         int id = 0;
@@ -112,6 +112,8 @@ public:
             // Maybe we don't need a class for that, just make a simple vector
             // and non-member function to execute every interaction
             interactions.run(message_log);
+            
+            render_log();
             
             city.update(nextPosition);
             
@@ -167,8 +169,6 @@ private:
         attron(COLOR_PAIR(3));
         mvprintw(half_size.height, half_size.width, CharManager::actors.at(0).c_str());
         attroff(COLOR_PAIR(3));
-        
-        render_log();
     }
     
     void render_log() const

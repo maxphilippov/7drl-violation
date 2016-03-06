@@ -43,7 +43,6 @@ struct PhysicsData
 class CollisionManager
 {
     std::vector<PhysicsData> objects;
-    std::unordered_map<int, InteractionType> interactables;
 public:
     // Returns player position, temporary?
     Position update(Position const& player, MapSize const& bounds, InteractionQueue& interactions)
@@ -53,13 +52,7 @@ public:
             // FIXME: How to make a copy and not leak
         }
         
-        // On every collision generate an interaction
-        
-        auto pos = player.x + player.y * bounds.width;
-        auto interaction = interactables.find(pos);
-        if (interaction != std::end(interactables)) {
-            interactions.add(interaction->second);
-        }
+        // TODO: On every collision generate an interaction
         
         return player;
     }

@@ -44,7 +44,7 @@ public:
             auto job = job_queue.front();
             while(job.turn_to_finish == turn_counter) {
                 job_queue.pop();
-                interactions.add(InteractionType::JobComplete);
+                interactions.add_dialog();
                 job = job_queue.front();
             }
         }

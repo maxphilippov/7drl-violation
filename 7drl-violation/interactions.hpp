@@ -11,56 +11,54 @@
 #include <vector>
 #include <unordered_map>
 
-enum InteractionType
+struct TravelData
 {
-    Travel,
-    JobComplete,
-    Dialog
+    int destination_id;
 };
 
-struct InteractionData
+struct DialogData
 {
-    InteractionType id;
-};
-
-struct Interaction
-{
-    std::function<std::string(InteractionData const&)> func;
+    
 };
 
 class InteractionQueue
 {
-    static const std::unordered_map<InteractionType, Interaction> interaction_pool;
-    // We just iterate on this once per turn, so it's a vector
-    std::vector<InteractionData> interactions;
+    std::vector<TravelData> travels;
+    std::vector<DialogData> dialogs;
 public:
     InteractionQueue()
     {
-        interactions.reserve(10);
+        travels.reserve(5);
+        dialogs.reserve(5);
     }
     
-    void add(InteractionType id) {
-        auto d = InteractionData {
-            id
-        };
-        interactions.push_back(d);
+    void add_travel(int destination_id) {
+        travels.push_back(TravelData());
+    }
+    
+    void add_dialog() {
+        dialogs.push_back(DialogData());
     }
     
     void run(std::vector<std::string>& message_log)
     {
-        for(auto i: interactions) {
-            auto inter = interaction_pool.at(i.id);
-            auto r = inter.func(i);
-            message_log.push_back(r);
+        for(auto& t: travels)
+        {
+            message_log.push_back("Traveled to another district");
         }
         
-        interactions.clear();
+        // Player can escape any interaction if he manages to enter travel point at that turn
+        // TODO: Maybe just clear other collections when we add a travel? But check is better for debugging
+        if (travels.size() == 0) {
+            for(auto& d: dialogs)
+            {
+                
+            }
+        }
+        
+        travels.clear();
+        dialogs.clear();
     }
-};
-
-const std::unordered_map<InteractionType, Interaction> InteractionQueue::interaction_pool = {
-    { InteractionType::Travel, { [](InteractionData const&) { return "Travel"; } } },
-    { InteractionType::JobComplete, { [](InteractionData const&) { return "R-r-r-ring. Your order is complete"; } } }
 };
 
 
