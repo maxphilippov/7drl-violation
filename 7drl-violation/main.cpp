@@ -6,6 +6,7 @@
 //
 
 #include <algorithm>
+#include <sstream>
 #include <vector>
 #include <unordered_set>
 
@@ -18,6 +19,7 @@
 #include "city.hpp"
 #include "collisions.hpp"
 #include "interactions.hpp"
+#include "items.hpp"
 #include "police.hpp"
 #include "position.hpp"
 #include "timeline.hpp"
@@ -30,6 +32,27 @@ const std::unordered_set<char> actions = {
 const std::unordered_set<char> exit_buttons = {
     'q', 'Q'
 };
+
+std::string build_help_message() {
+    auto ss = std::stringstream();
+    
+    ss << "General:\n\t" << "q - exit\n\t" << "? - help\n" << "\n";
+    ss << "Movement:\n\t" << "h - left\n\t" << "l - right\n\t" << "j - down\n\t" << "k - top\n" << "\n";
+    ss << "Items: \n\t" << "t - phone \n" << "\n";
+    
+    ss << "\nID is the key. You have one ID attached to you, but obviously it's an ID of a criminal. So you need a magical phone with a new ID attached, that should work for a while.";
+    
+    ss << "\n\nPress any key to exit";
+    
+    return ss.str();
+}
+
+const std::string helpMessage = build_help_message();
+
+void render_help()
+{
+    printw(helpMessage.c_str());
+}
 
 class Game
 {
@@ -47,13 +70,19 @@ private:
     
     std::vector<std::string> message_log;
 public:
-    Game(int width, int height) : half_size{width / 2, height / 2}
+    Game(int width, int height) : half_size{ width / 2, height / 2 }
     {
         initscr();
         noecho();
         curs_set(FALSE);
+        start_color();
+        init_pair(1, COLOR_WHITE, COLOR_BLACK);
+        init_pair(2, COLOR_BLUE, COLOR_WHITE);
+        init_pair(3, COLOR_GREEN, COLOR_BLACK);
+        
         message_log.reserve(256);
     }
+    
     ~Game()
     {
         printw("Thanks for playing Violation. See you soon, mam.");
@@ -62,77 +91,86 @@ public:
         endwin();
     }
     
-    Position intro_sequence()
+    void run()
     {
         interactions.add_travel(0);
         time.add_job(4);
         
-        auto player_pos = Position{32,32};
+        auto player_pos = Position{ 32, 32 };
         
         player_id = collisions.add_moving_entity(player_pos);
         
         printw("Your master is dead, the blood is on your hands, hurry up, they are looking for a female android");
         
-        getch();
-        clear();
+        // Find a nearest bar and look for a smuggler
+        // Don't pay for anything in public places unless you want police to know that
+        // Pay for a fake ID with the money you got left
         
-        return player_pos;
+        getch();
+        
+        loop(player_pos);
     }
-    
+private:
     void loop(Position const& player)
     {
-        int input = '\0';
         auto nextPosition = player;
+        auto input = '\0';
         do {
             clear();
             
             auto level_bounds = city.bounds();
             
-            Velocity pVelocity;
-            // should push velocity to CollisionsManager to let it later handle things
-            pVelocity.x = (input == 'l') ? 1 : (input == 'h') ? -1 : 0;
-            pVelocity.y = (input == 'j') ? 1 : (input == 'k') ? -1 : 0;
-            
-            collisions.change_velocity(player_id, pVelocity);
-
-            // Produce velocity for movement orders
-            police.update(nextPosition, collisions);
-            
-            // Produce interactions list, should be sorted by priority
-            // Like a message from PO is more important than your interaction with civilians
-            nextPosition = collisions.update(nextPosition, level_bounds, interactions);
-            
             auto cells = city.map();
             
-            render(nextPosition, cells, level_bounds);
-            // OK, now the interface
-            
-            // Adds interaction for completed jobs and probably creates something
-            // like CityChange with data on what to change in city before next turn
-            time.update(interactions);
-            
-            // Maybe we don't need a class for that, just make a simple vector
-            // and non-member function to execute every interaction
-            interactions.run(message_log);
-            
-            render_log();
-            
-            city.update(nextPosition);
+            if(actions.count(input) != 0) {
+                
+                Velocity pVelocity;
+                // should push velocity to CollisionsManager to let it later handle things
+                pVelocity.x = (input == 'l') ? 1 : (input == 'h') ? -1 : 0;
+                pVelocity.y = (input == 'j') ? 1 : (input == 'k') ? -1 : 0;
+                
+                collisions.change_velocity(player_id, pVelocity);
+                
+                // Produce velocity for movement orders
+                police.update(nextPosition, collisions);
+                
+                // Produce interactions list, should be sorted by priority
+                // Like a message from PO is more important than your interaction with civilians
+                nextPosition = collisions.update(nextPosition, level_bounds, interactions);
+                
+                render(nextPosition, cells, level_bounds);
+                // OK, now the interface
+                
+                // Adds interaction for completed jobs and probably creates something
+                // like CityChange with data on what to change in city before next turn
+                time.update(interactions);
+                
+                // Maybe we don't need a class for that, just make a simple vector
+                // and non-member function to execute every interaction
+                interactions.run(message_log);
+                
+                render_log();
+                
+                city.update(nextPosition);
+                
+                time.next_turn();
+                
+            } else if(input == '?') {
+                render_help();
+            } else {
+                render(nextPosition, cells, level_bounds);
+                
+                render_log();
+            }
             
             refresh();
-            
-            time.next_turn();
             
             input = getch();
         } while(exit_buttons.count(input) == 0);
     }
-private:
+    
     void render(Position const& player, MapCells const& map, MapSize const& bounds) const
     {
-        start_color();
-        init_pair(1, COLOR_WHITE, COLOR_BLACK);
-        init_pair(2, COLOR_BLUE, COLOR_WHITE);
-        init_pair(3, COLOR_GREEN, COLOR_BLACK);
         
         auto init_x = std::max(half_size.width - player.x, 0);
         auto init_y = std::max(half_size.height - player.y, 0);
@@ -191,9 +229,7 @@ int main(int argc, const char * argv[]) {
     // TODO: Reduce screen size to 20, 20 instead of any kind of vision control
     auto g = Game(80, 60);
     
-    auto player_pos = g.intro_sequence();
-    
-    g.loop(player_pos);
+    g.run();
     
     return 0;
 }
