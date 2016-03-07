@@ -101,8 +101,8 @@ class CityManager
 public:
     CityManager() :
     district_count(5),
-    size{ 128, 128 },
-    district_map(generate(0, size, 5, 3))
+    size{ 64, 64 },
+    district_map(generate(static_cast<unsigned>(std::time(0)), size, 5, 3))
     {
         used_districts.reserve(district_count);
     }

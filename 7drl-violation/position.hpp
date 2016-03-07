@@ -23,6 +23,14 @@ struct Bounds
     {
         return pos.x >= minx && pos.y >= miny && pos.x < maxx && pos.y < maxy;
     }
+    
+    Bounds shrink(int value) const
+    {
+        return Bounds {
+            minx + value, miny + value,
+            maxx - value, maxy - value
+        };
+    }
 };
 
 struct Velocity

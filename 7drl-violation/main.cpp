@@ -37,7 +37,7 @@ std::string build_help_message() {
     auto ss = std::stringstream();
     
     ss << "General:\n\t" << "q - exit\n\t" << "? - help\n" << "\n";
-    ss << "Movement:\n\t" << "h - left\n\t" << "l - right\n\t" << "j - down\n\t" << "k - top\n" << "\n";
+    ss << "Movement:\n\t" << "h - left\n\t" << "l - right\n\t" << "j - down\n\t" << "k - top\n" << "spacebar - skip turn\n" << "\n";
     ss << "Items: \n\t" << "t - phone \n" << "\n";
     
     ss << "\nID is the key. You have one ID attached to you, but obviously it's an ID of a criminal. So you need a magical phone with a new ID attached, that should work for a while.";

@@ -15,6 +15,18 @@ struct Job
     int turn_to_finish;
 };
 
+const unsigned int turns_in_hour = 12;
+
+class Hours
+{
+    int h;
+public:
+    Hours(int h) : h(h) {}
+    // I'd like to make it return a Turns type, but
+    // has to overload all operators, so it's int for the moment
+    operator int() { return h * turns_in_hour; }
+};
+
 class Timeline
 {
     int turn_counter;
@@ -26,6 +38,11 @@ public:
         turn_counter = 1;
     }
 
+    auto skip_time(Hours t)
+    {
+        turn_counter += static_cast<int>(t);
+    }
+    
     auto current_turn() const
     {
         return turn_counter;

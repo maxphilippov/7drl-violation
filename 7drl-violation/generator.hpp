@@ -10,15 +10,10 @@
 
 #include <algorithm>
 #include <random>
+#include <memory>
 
 #include "map.hpp"
 #include "position.hpp"
-
-auto divide(int width, int height) {
-    return Bounds{
-        
-    };
-}
 
 class Building
 {
@@ -28,21 +23,103 @@ class Building
 
 class CityBlock
 {
+    std::unique_ptr<CityBlock> blockA, blockB;
     std::vector<Building> buildings;
     Bounds bounds;
+public:
+    CityBlock(Bounds bounds) :
+    blockA(nullptr),
+    blockB(nullptr),
+    bounds(bounds) {}
+    
+    // Go deep till the "leaves" and get its bounds
+    std::vector<Bounds> get_bounds()
+    {
+        auto r = std::vector<Bounds>();
+
+        if (blockA != nullptr && blockB != nullptr) {
+            auto boundsA = blockA->get_bounds();
+            auto boundsB = blockB->get_bounds();
+            r.insert(std::end(r), std::begin(boundsA), std::end(boundsA));
+            r.insert(std::end(r), std::begin(boundsB), std::end(boundsB));
+        } else {
+            r.push_back(bounds);
+        }
+        
+        return r;
+    }
+    
+    // Divide block into two `steps` times
+    void divide(int seed, int steps)
+    {
+        if (steps == 0) return;
+        
+        auto generator = std::default_random_engine(seed);
+        auto d = std::uniform_int_distribution<>(0,10);
+        
+        auto dir = d(generator);
+        
+        Bounds boundsA, boundsB;
+        
+        if (dir % 2 == 0) {
+            // split horizontally
+            auto middle_point = bounds.minx + (bounds.maxx - bounds.minx) / 2;
+            auto d = std::uniform_int_distribution<>((int)middle_point * 0.9, (int)middle_point * 1.1);
+            
+            auto slice = d(generator);
+            
+            boundsA = {
+                bounds.minx, bounds.miny,
+                slice, bounds.maxy
+            };
+            
+            boundsB = {
+                slice, bounds.miny,
+                bounds.maxx, bounds.maxy
+            };
+            
+        } else {
+            // split vertically
+            auto middle_point = bounds.miny + (bounds.maxy - bounds.miny) / 2;
+            auto d = std::uniform_int_distribution<int>((int)middle_point * 0.9, (int)middle_point * 1.1);
+            
+            auto slice = d(generator);
+            
+            boundsA = {
+                bounds.minx, bounds.miny,
+                bounds.maxx, slice
+            };
+            
+            boundsB = {
+                bounds.minx, slice,
+                bounds.maxx, bounds.maxy
+            };
+        }
+        
+        blockA = std::make_unique<CityBlock>(boundsA);
+        blockB = std::make_unique<CityBlock>(boundsB);
+        
+        blockA->divide(seed, steps - 1);
+        blockB->divide(seed, steps - 1);
+    }
 };
 
-MapCells& paintBounds(MapCells& cells, Bounds const& mapSize, Bounds const& paintInside, int value)
+MapCells& paintBounds(MapCells& cells,
+                      Bounds const& mapSize,
+                      std::vector<Bounds> const& paintInside,
+                      int value
+                      )
 {
     auto mapWidth = mapSize.maxx - mapSize.minx;
     
-    auto maxx = std::min(mapSize.maxx, paintInside.maxx);
-    auto maxy = std::min(mapSize.maxy, paintInside.maxy);
-    
-    for(auto j = paintInside.miny; j < maxy; ++j) {
-        for(auto i = paintInside.minx; i < maxx; ++i) {
-            auto pos = i + j * mapWidth;
-            cells.at(pos) = value;
+    for(auto b: paintInside) {
+        auto maxx = std::min(mapSize.maxx, b.maxx);
+        auto maxy = std::min(mapSize.maxy, b.maxy);
+        for(auto j = b.miny; j < maxy; ++j) {
+            for(auto i = b.minx; i < maxx; ++i) {
+                auto pos = i + j * mapWidth;
+                cells.at(pos) = value;
+            }
         }
     }
     
@@ -50,52 +127,18 @@ MapCells& paintBounds(MapCells& cells, Bounds const& mapSize, Bounds const& pain
 }
 
 MapCells generate(int seed, MapSize const& size, int cols, int rows) {
-    auto generator = std::default_random_engine(seed);
-    
     auto bounds = Bounds{ 0, 0, size.width, size.height };
-    
-    const auto road_half_width = 2;
-    
-    const auto road_interval = 5 + road_half_width;
-    
+
     auto r = MapCells(size.width * size.height);
 
-    {
-        auto randomx = 0;
-        auto lastx = 0;
-        for(auto i = 0; i < cols; ++i) {
-            auto d = std::uniform_int_distribution<int>(lastx, size.width / (cols - i));
-            randomx = d(generator);
-            auto road = Bounds{
-                std::max(randomx - road_half_width, 0),
-                0,
-                std::min(randomx + road_half_width, size.width),
-                size.height
-            };
-            lastx = randomx + road_interval + 1;
-            
-            paintBounds(r, bounds, road, 2);
-        }
-    }
+    auto rootBlock = CityBlock{bounds};
     
-    {
-        auto randomy = 0;
-        auto lasty = 0;
-        
-        for(auto i = 0; i< rows; ++i) {
-            auto d = std::uniform_int_distribution<int>(lasty, size.height / (rows - i));
-            randomy = d(generator);
-            auto road = Bounds{
-                0,
-                std::max(randomy - road_half_width, 0),
-                size.width,
-                std::min(randomy + road_half_width, size.height)
-            };
-            lasty = randomy + road_interval + 1;
-            
-            paintBounds(r, bounds, road, 2);
-        }
-    }
+    rootBlock.divide(seed, 4);
+    
+    auto all_bounds = rootBlock.get_bounds();
+    
+    std::for_each(std::begin(all_bounds), std::end(all_bounds), [](Bounds& b) { b = b.shrink(1); });
+    paintBounds(r, bounds, all_bounds, 1);
     
     return r;
 }
