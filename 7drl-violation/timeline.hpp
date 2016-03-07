@@ -26,9 +26,14 @@ public:
         turn_counter = 1;
     }
 
-    int current_turn() const
+    auto current_turn() const
     {
         return turn_counter;
+    }
+    
+    auto next_turn()
+    {
+        return turn_counter += 1;
     }
     
     void add_job(int time_to_finish)
@@ -49,11 +54,6 @@ public:
                 job = job_queue.front();
             }
         }
-    }
-    
-    int next_turn()
-    {
-        return turn_counter += 1;
     }
 };
 
