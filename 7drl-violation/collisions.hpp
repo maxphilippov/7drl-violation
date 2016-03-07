@@ -22,6 +22,7 @@ class CollisionManager
     std::vector<Position> positions;
     std::vector<Velocity> velocities;
 public:
+    typedef unsigned long id_type;
     CollisionManager()
     {
         positions.reserve(64);
@@ -45,6 +46,8 @@ public:
                            };
                        });
         
+        // TODO: Actually check collisions
+        
         std::swap(positions, new_positions);
         
         // TODO: Find a better way to nullify every velocity
@@ -60,24 +63,24 @@ public:
         return positions.at(0);
     }
     
-    void drop_object(int id) {
+    void drop_object(id_type id) {
         if(positions.size() > id) {
             positions.erase(std::begin(positions) + id - 1);
             velocities.erase(std::begin(velocities) + id - 1);
         }
     }
     
-    void change_velocity(unsigned long id, Velocity vel)
+    void change_velocity(id_type id, Velocity vel)
     {
         velocities.at(id) = vel;
     }
     
-    void teleport(int id, Position pos)
+    void teleport(id_type id, Position pos)
     {
-        
+        positions.at(id) = pos;
     }
     
-    unsigned long add_moving_entity(Position pos, Velocity vel = Velocity{0, 0})
+    auto add_moving_entity(Position pos, Velocity vel = Velocity{0, 0})
     {
         auto id = positions.size();
         
@@ -87,7 +90,7 @@ public:
         return id;
     }
     
-    std::vector<Position> get_in_range(Position const& player, MapSize const& half_screen) const
+    auto get_in_range(Position const& player, MapSize const& half_screen) const
     {
         auto bounds = Bounds{
             player.x - half_screen.width,

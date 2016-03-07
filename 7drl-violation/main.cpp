@@ -62,22 +62,26 @@ public:
         endwin();
     }
     
-    void intro_sequence()
+    Position intro_sequence()
     {
         interactions.add_travel(0);
         time.add_job(4);
         
-        player_id = collisions.add_moving_entity(Position{32, 32});
+        auto player_pos = Position{32,32};
+        
+        player_id = collisions.add_moving_entity(player_pos);
         
         printw("Your master is dead, the blood is on your hands, hurry up, they are looking for a female android");
         
         getch();
         clear();
+        
+        return player_pos;
     }
     
     void loop(Position const& player)
     {
-        int input;
+        int input = '\0';
         auto nextPosition = player;
         do {
             clear();
@@ -187,9 +191,9 @@ int main(int argc, const char * argv[]) {
     // TODO: Reduce screen size to 20, 20 instead of any kind of vision control
     auto g = Game(80, 60);
     
-    g.intro_sequence();
+    auto player_pos = g.intro_sequence();
     
-    g.loop(Position{32,32});
+    g.loop(player_pos);
     
     return 0;
 }

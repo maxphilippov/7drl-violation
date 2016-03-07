@@ -28,6 +28,7 @@ namespace symbols
         { 2, "P" }, // Police officer
         { 3, "G" }, // Gangstar
         { 4, "D" }, // Android
+        { 5, "M" }, // Master
     };
 }
 

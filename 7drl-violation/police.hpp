@@ -14,9 +14,14 @@
 #include "position.hpp"
 #include "collisions.hpp"
 
+struct ActivatedPO
+{
+    CollisionManager::id_type collision_id;
+};
+
 class PoliceManager
 {
-    std::vector<unsigned long> cops_on_the_street;
+    std::vector<CollisionManager::id_type> cops_on_the_street;
     
     int turn_jumper = 0;
 public:
