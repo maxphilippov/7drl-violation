@@ -148,7 +148,7 @@ private:
                 auto world_x = left + x;
                 auto world_y = top + y;
                 auto code = city.get(world_x, world_y);
-                mvprintw(y, x, CharManager::mapTiles.at(code).c_str());
+                mvprintw(y, x, symbols::mapTiles.at(code).c_str());
             }
         }
         attroff(COLOR_PAIR(1));
@@ -158,16 +158,17 @@ private:
         
         attron(COLOR_PAIR(2));
         for(auto a: actors) {
+            // TODO: Color hostile actors with red background?
             auto pos = a.pos;
             auto x = pos.x - left;
             auto y = pos.y - top;
-            mvprintw(y, x, CharManager::actors.at(2).c_str());
+            mvprintw(y, x, symbols::actors.at(2).c_str());
         }
         attroff(COLOR_PAIR(2));
         
         // Player
         attron(COLOR_PAIR(3));
-        mvprintw(half_size.height, half_size.width, CharManager::actors.at(0).c_str());
+        mvprintw(half_size.height, half_size.width, symbols::actors.at(0).c_str());
         attroff(COLOR_PAIR(3));
     }
     

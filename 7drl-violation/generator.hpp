@@ -36,28 +36,28 @@ MapCells& paintBounds(MapCells& cells, Bounds const& mapSize, Bounds const& boun
     return cells;
 }
 
-MapCells generate(int seed, int width, int height, int cols, int rows) {
+MapCells generate(int seed, MapSize const& size, int cols, int rows) {
     auto generator = std::default_random_engine(seed);
     
-    auto bounds = Bounds{ 0, 0, width, height };
-    
-    const auto road_interval = 7;
+    auto bounds = Bounds{ 0, 0, size.width, size.height };
     
     const auto road_half_width = 2;
     
-    auto r = MapCells(width * height);
+    const auto road_interval = 5 + road_half_width;
+    
+    auto r = MapCells(size.width * size.height);
 
     {
         auto randomx = 0;
         auto lastx = 0;
         for(auto i = 0; i < cols; ++i) {
-            auto d = std::uniform_int_distribution<int>(lastx, width / (cols - i));
+            auto d = std::uniform_int_distribution<int>(lastx, size.width / (cols - i));
             randomx = d(generator);
             auto road = Bounds{
                 std::max(randomx - road_half_width, 0),
                 0,
-                std::min(randomx + road_half_width, width),
-                height
+                std::min(randomx + road_half_width, size.width),
+                size.height
             };
             lastx = randomx + road_interval + 1;
             
@@ -70,13 +70,13 @@ MapCells generate(int seed, int width, int height, int cols, int rows) {
         auto lasty = 0;
         
         for(auto i = 0; i< rows; ++i) {
-            auto d = std::uniform_int_distribution<int>(lasty, height / (rows - i));
+            auto d = std::uniform_int_distribution<int>(lasty, size.height / (rows - i));
             randomy = d(generator);
             auto road = Bounds{
                 0,
                 std::max(randomy - road_half_width, 0),
-                width,
-                std::min(randomy + road_half_width, height)
+                size.width,
+                std::min(randomy + road_half_width, size.height)
             };
             lasty = randomy + road_interval + 1;
             

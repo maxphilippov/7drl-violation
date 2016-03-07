@@ -23,7 +23,7 @@ struct DialogData
 
 void police_officer_interaction()
 {
-    printw("Sorry, madam, can I check your id");
+    printw("Madam, can I check your id, please?");
 }
 
 class InteractionQueue
@@ -38,7 +38,11 @@ public:
     }
     
     void add_travel(int destination_id) {
-        travels.push_back(TravelData());
+        auto data = TravelData{
+            destination_id
+        };
+        
+        travels.push_back(data);
     }
     
     void add_dialog() {

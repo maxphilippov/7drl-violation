@@ -13,24 +13,22 @@
 
 typedef std::unordered_map<int, std::string> CharMap;
 
-class CharManager
+namespace symbols
 {
-public:
-    const static CharMap mapTiles;
-    const static CharMap actors;
-};
+    const CharMap mapTiles = {
+        { 0, "." }, // Empty space
+        { 1, "#" }, // Wall
+        { 2, "+" }, // Road
+        { 3, "=" }, // Door
+    };
 
-const CharMap CharManager::mapTiles = {
-    { 0, "." }, // Empty space
-    { 1, "#" }, // Wall
-    { 2, "+" }, // Road
-    { 3, "=" }, // Door
-};
-
-const CharMap CharManager::actors = {
-    { 0, "@" }, // Player
-    { 1, "C" }, // Citizen
-    { 2, "P" }, // Police officer
-};
+    const CharMap actors = {
+        { 0, "@" }, // Player
+        { 1, "C" }, // Citizen
+        { 2, "P" }, // Police officer
+        { 3, "G" }, // Gangstar
+        { 4, "D" }, // Android
+    };
+}
 
 #endif /* symbols_h */

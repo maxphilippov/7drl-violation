@@ -8,6 +8,7 @@
 #ifndef city_h
 #define city_h
 
+#include <array>
 #include <algorithm>
 #include <chrono>
 #include <iterator>
@@ -35,21 +36,29 @@ class District
 {
     DistrictData data;
     
+    std::array<int, 3> places_count;
+    
     std::vector<Position> shops;
     std::vector<Position> clinics;
     std::vector<Position> bars;
-    
 public:
-    District(int id, int pop, int crime_level, int law_power, int points_of_interest, int private_satelites) :
-    data{
-        id, pop, crime_level, law_power, points_of_interest, private_satelites
-    }
+    // TODO: Pass data as parameter?
+    District(int id, int pop, int crime_level, int law_power, int points_of_interest, int private_satelites) : data{id, pop, crime_level, law_power, points_of_interest, private_satelites}
     {
+        std::random_device rd;
+        auto gen = std::mt19937(rd());
+        // Chance to generate shop / clinic / bar
+        auto d = std::discrete_distribution<>({35, 10, 15});
+        
+        // Now how do we turn that into separate arrays?
+        for(auto i = 0; i < points_of_interest; ++i) {
+            ++places_count[d(gen)];
+        }
     }
     
-    int id() const
+    DistrictData const& get_data() const
     {
-        return data.id;
+        return data;
     }
 };
 
@@ -82,7 +91,7 @@ class CityManager
     {
         auto d = std::find_if(std::begin(used_districts),
                               std::end(used_districts),
-                              [id](District const& d)->bool { return d.id() == id; });
+                              [id](District const& d)->bool { return d.get_data().id == id; });
         if (d != std::end(used_districts)) {
             used_districts.erase(d);
             district_count += 1;
@@ -93,7 +102,7 @@ public:
     CityManager() :
     district_count(5),
     size{ 128, 128 },
-    district_map(generate(0, size.width, size.height, 5, 3))
+    district_map(generate(0, size, 5, 3))
     {
         used_districts.reserve(district_count);
     }
