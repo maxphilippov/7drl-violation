@@ -32,12 +32,6 @@ public:
     Position update(Position const& player, MapSize const& level_bounds, InteractionQueue& interactions)
     {
         // Update all entities positions
-        for(auto const& v: velocities) {
-            // FIXME: How to make a copy and not leak
-            
-            
-        }
-        
         auto new_positions = std::vector<Position>(positions.size());
         
         std::transform(std::begin(positions),
