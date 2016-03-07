@@ -136,7 +136,9 @@ private:
                 
                 // Produce interactions list, should be sorted by priority
                 // Like a message from PO is more important than your interaction with civilians
-                nextPosition = collisions.update(nextPosition, level_bounds, interactions);
+                collisions.update(nextPosition, level_bounds, interactions);
+                
+                nextPosition = collisions.get_position(player_id);
                 
                 render(nextPosition, cells, level_bounds);
                 // OK, now the interface

@@ -31,7 +31,7 @@ public:
     }
     
     // Returns player position, temporary?
-    Position update(Position const& player, MapSize const& level_bounds, InteractionQueue& interactions)
+    void update(Position const& player, MapSize const& level_bounds, InteractionQueue& interactions)
     {
         // Update all entities positions (actually should update just nearest to the player)
         auto new_positions = std::vector<Position>(positions.size());
@@ -48,6 +48,8 @@ public:
                        });
         
         // TODO: Actually check collisions
+        // For collision checking we might need to sort a vector,
+        // that makes the whole id thing look bad
         
         std::swap(positions, new_positions);
         
@@ -60,8 +62,6 @@ public:
                        });
         
         // TODO: On every collision generate an interaction
-
-        return positions.at(0);
     }
     
     void drop_object(id_type id) {
@@ -74,6 +74,11 @@ public:
     void change_velocity(id_type id, Velocity vel)
     {
         velocities.at(id) = vel;
+    }
+    
+    Position const& get_position(id_type id) const
+    {
+        return positions.at(id);
     }
     
     void teleport(id_type id, Position pos)
