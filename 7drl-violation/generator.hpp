@@ -8,26 +8,39 @@
 #ifndef generator_h
 #define generator_h
 
+#include <algorithm>
 #include <random>
 
 #include "map.hpp"
 #include "position.hpp"
 
-Bounds divide(int width, int height) {
+auto divide(int width, int height) {
     return Bounds{
         
     };
 }
 
-MapCells& paintBounds(MapCells& cells, Bounds const& mapSize, Bounds const& bounds, int value)
+class Building
+{
+    Bounds bounds;
+    std::vector<Position> doors;
+};
+
+class CityBlock
+{
+    std::vector<Building> buildings;
+    Bounds bounds;
+};
+
+MapCells& paintBounds(MapCells& cells, Bounds const& mapSize, Bounds const& paintInside, int value)
 {
     auto mapWidth = mapSize.maxx - mapSize.minx;
     
-    auto maxx = std::min(mapSize.maxx, bounds.maxx);
-    auto maxy = std::min(mapSize.maxy, bounds.maxy);
+    auto maxx = std::min(mapSize.maxx, paintInside.maxx);
+    auto maxy = std::min(mapSize.maxy, paintInside.maxy);
     
-    for(auto j = bounds.miny; j < maxy; ++j) {
-        for(auto i = bounds.minx; i < maxx; ++i) {
+    for(auto j = paintInside.miny; j < maxy; ++j) {
+        for(auto i = paintInside.minx; i < maxx; ++i) {
             auto pos = i + j * mapWidth;
             cells.at(pos) = value;
         }

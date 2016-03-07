@@ -22,7 +22,8 @@ class CollisionManager
     std::vector<Position> positions;
     std::vector<Velocity> velocities;
 public:
-    typedef unsigned long id_type;
+    typedef std::vector<Position>::size_type id_type;
+
     CollisionManager()
     {
         positions.reserve(64);
@@ -32,7 +33,7 @@ public:
     // Returns player position, temporary?
     Position update(Position const& player, MapSize const& level_bounds, InteractionQueue& interactions)
     {
-        // Update all entities positions
+        // Update all entities positions (actually should update just nearest to the player)
         auto new_positions = std::vector<Position>(positions.size());
         
         std::transform(std::begin(positions),
