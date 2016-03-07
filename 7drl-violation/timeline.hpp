@@ -25,6 +25,7 @@ public:
     {
         turn_counter = 1;
     }
+
     int current_turn() const
     {
         return turn_counter;

@@ -21,6 +21,11 @@ struct DialogData
     
 };
 
+void police_officer_interaction()
+{
+    printw("Sorry, madam, can I check your id");
+}
+
 class InteractionQueue
 {
     std::vector<TravelData> travels;

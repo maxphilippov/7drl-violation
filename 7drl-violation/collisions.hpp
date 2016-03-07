@@ -17,23 +17,6 @@
 #include "interactions.hpp"
 #include "position.hpp"
 
-struct AABB
-{
-    int minx, miny;
-    int maxx, maxy;
-    
-    bool inside(Position const& pos) const
-    {
-        return pos.x >= minx && pos.y >= miny && pos.x < maxx && pos.y < maxy;
-    }
-};
-
-struct Velocity
-{
-    int x;
-    int y;
-};
-
 struct PhysicsData
 {
     Position pos;
@@ -74,7 +57,7 @@ public:
     
     std::vector<PhysicsData> get_in_range(Position const& player, MapSize const& half_screen) const
     {
-        auto bounds = AABB{
+        auto bounds = Bounds{
             player.x - half_screen.width,
             player.y - half_screen.height,
             player.x + half_screen.width,

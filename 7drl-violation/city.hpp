@@ -8,11 +8,15 @@
 #ifndef city_h
 #define city_h
 
+#include <algorithm>
+#include <chrono>
 #include <iterator>
 #include <vector>
 
 #include "map.hpp"
 #include "position.hpp"
+
+#include "generator.hpp"
 
 struct DistrictData
 {
@@ -60,11 +64,6 @@ class CityManager
     // Current district map
     MapCells district_map;
     
-    MapCells generate_a_district(MapSize size) const
-    {
-        return MapCells(size.width * size.height);
-    }
-    
     void add_district()
     {
         auto distr = District{
@@ -94,11 +93,9 @@ public:
     CityManager() :
     district_count(5),
     size{ 128, 128 },
-    district_map(size.width * size.height)
+    district_map(generate(0, size.width, size.height, 5, 3))
     {
         used_districts.reserve(district_count);
-        // Make a starting district
-        std::for_each(std::begin(district_map), std::end(district_map), [](int &i) { i = rand() % 2; });
     }
     
     const MapSize& bounds() const
