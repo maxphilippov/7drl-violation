@@ -18,6 +18,7 @@
 #include "city.hpp"
 #include "collisions.hpp"
 #include "interactions.hpp"
+#include "police.hpp"
 #include "position.hpp"
 #include "timeline.hpp"
 
@@ -42,6 +43,7 @@ private:
     CollisionManager collisions;
     Timeline time;
     InteractionQueue interactions;
+    PoliceManager police;
     
     std::vector<std::string> message_log;
 public:
@@ -65,11 +67,7 @@ public:
         interactions.add_travel(0);
         time.add_job(4);
         
-        player_id = collisions.add_moving_entity(Position{32, 32}, Velocity{0, 0});
-        
-        collisions.add_moving_entity(Position{15, 15}, Velocity{0, 0});
-        collisions.add_moving_entity(Position{20, 20}, Velocity{0, 0});
-        collisions.add_moving_entity(Position{30, 30}, Velocity{0, 0});
+        player_id = collisions.add_moving_entity(Position{32, 32});
         
         printw("Your master is dead, the blood is on your hands, hurry up, they are looking for a female android");
         
@@ -94,7 +92,7 @@ public:
             collisions.change_velocity(player_id, pVelocity);
 
             // Produce velocity for movement orders
-            // policeManager.update(nextPosition, collisions);
+            police.update(nextPosition, collisions);
             
             // Produce interactions list, should be sorted by priority
             // Like a message from PO is more important than your interaction with civilians

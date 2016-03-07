@@ -53,6 +53,14 @@ public:
         
         std::swap(positions, new_positions);
         
+        // TODO: Find a better way to nullify every velocity
+        std::transform(std::begin(velocities),
+                       std::end(velocities),
+                       std::begin(velocities),
+                       [](Velocity const& v) {
+                           return Velocity{ 0, 0 };
+                       });
+        
         // TODO: On every collision generate an interaction
 
         return positions.at(0);
