@@ -64,9 +64,11 @@ public:
         
         int id = 0;
         
-        collisions.add_moving_entity(id++, Position{15, 15}, Velocity{0, 0});
-        collisions.add_moving_entity(id++, Position{20, 20}, Velocity{0, 0});
-        collisions.add_moving_entity(id++, Position{30, 30}, Velocity{0, 0});
+        auto player_id = collisions.add_moving_entity(Position{32, 32}, Velocity{0, 0});
+        
+        collisions.add_moving_entity(Position{15, 15}, Velocity{0, 0});
+        collisions.add_moving_entity(Position{20, 20}, Velocity{0, 0});
+        collisions.add_moving_entity(Position{30, 30}, Velocity{0, 0});
         
         printw("Your master is dead, the blood is on your hands, hurry up, they are looking for a female android");
         
@@ -154,12 +156,11 @@ private:
         attroff(COLOR_PAIR(1));
         
         // Actors
-        auto actors = collisions.get_in_range(player, half_size);
+        auto actor_positions = collisions.get_in_range(player, half_size);
         
         attron(COLOR_PAIR(2));
-        for(auto a: actors) {
+        for(auto pos: actor_positions) {
             // TODO: Color hostile actors with red background?
-            auto pos = a.pos;
             auto x = pos.x - left;
             auto y = pos.y - top;
             mvprintw(y, x, symbols::actors.at(2).c_str());

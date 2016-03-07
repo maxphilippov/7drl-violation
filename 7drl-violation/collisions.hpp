@@ -17,27 +17,37 @@
 #include "interactions.hpp"
 #include "position.hpp"
 
-struct PhysicsData
-{
-    Position pos;
-    Velocity vel;
-};
-
 class CollisionManager
 {
-    std::vector<PhysicsData> objects;
+    std::vector<Position> positions;
+    std::vector<Velocity> velocities;
 public:
+    CollisionManager()
+    {
+        positions.reserve(64);
+        velocities.reserve(64);
+    }
+    
     // Returns player position, temporary?
     Position update(Position const& player, MapSize const& bounds, InteractionQueue& interactions)
     {
         // Update all entities positions
-        for(auto& m: objects) {
+        for(auto const& v: velocities) {
             // FIXME: How to make a copy and not leak
+            
+            
         }
         
         // TODO: On every collision generate an interaction
         
         return player;
+    }
+    
+    void drop_object(int id) {
+        if(positions.size() > id) {
+            positions.erase(std::begin(positions) + id - 1);
+            velocities.erase(std::begin(velocities) + id - 1);
+        }
     }
     
     void change_velocity(int id)
@@ -50,12 +60,17 @@ public:
         
     }
     
-    void add_moving_entity(int id, Position pos, Velocity vel)
+    unsigned long add_moving_entity(Position pos, Velocity vel = Velocity{0, 0})
     {
-        objects.push_back(PhysicsData{pos, vel});
+        auto id = positions.size();
+        
+        positions.push_back(pos);
+        velocities.push_back(vel);
+        
+        return id;
     }
     
-    std::vector<PhysicsData> get_in_range(Position const& player, MapSize const& half_screen) const
+    std::vector<Position> get_in_range(Position const& player, MapSize const& half_screen) const
     {
         auto bounds = Bounds{
             player.x - half_screen.width,
@@ -64,12 +79,12 @@ public:
             player.x + half_screen.height
         };
         
-        auto r = std::vector<PhysicsData>(objects.size());
+        auto r = std::vector<Position>(positions.size());
         
-        auto it = std::copy_if(std::begin(objects),
-                               std::end(objects),
+        auto it = std::copy_if(std::begin(positions),
+                               std::end(positions),
                                std::begin(r),
-                               [&bounds](PhysicsData const& d) { return bounds.inside(d.pos); } );
+                               [&bounds](Position const& p) { return bounds.inside(p); } );
         
         r.resize(std::distance(r.begin(), it));
         
