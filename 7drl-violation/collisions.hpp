@@ -29,7 +29,7 @@ public:
     }
     
     // Returns player position, temporary?
-    Position update(Position const& player, MapSize const& bounds, InteractionQueue& interactions)
+    Position update(Position const& player, MapSize const& level_bounds, InteractionQueue& interactions)
     {
         // Update all entities positions
         for(auto const& v: velocities) {
@@ -38,9 +38,24 @@ public:
             
         }
         
-        // TODO: On every collision generate an interaction
+        auto new_positions = std::vector<Position>(positions.size());
         
-        return player;
+        std::transform(std::begin(positions),
+                       std::end(positions),
+                       std::begin(velocities),
+                       std::begin(new_positions),
+                       [&level_bounds](Position const& p, Velocity const& v) {
+                           return Position{
+                               std::max(0, std::min(p.x + v.x, level_bounds.width - 1)),
+                               std::max(0, std::min(p.y + v.y, level_bounds.height - 1))
+                           };
+                       });
+        
+        std::swap(positions, new_positions);
+        
+        // TODO: On every collision generate an interaction
+
+        return positions.at(0);
     }
     
     void drop_object(int id) {
@@ -50,9 +65,9 @@ public:
         }
     }
     
-    void change_velocity(int id)
+    void change_velocity(unsigned long id, Velocity vel)
     {
-        
+        velocities.at(id) = vel;
     }
     
     void teleport(int id, Position pos)

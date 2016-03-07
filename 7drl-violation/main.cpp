@@ -35,6 +35,9 @@ class Game
 private:
     const MapSize half_size;
     
+    // TODO: Make a separate manager for player input
+    unsigned long player_id;
+    
     CityManager city;
     CollisionManager collisions;
     Timeline time;
@@ -62,9 +65,7 @@ public:
         interactions.add_travel(0);
         time.add_job(4);
         
-        int id = 0;
-        
-        auto player_id = collisions.add_moving_entity(Position{32, 32}, Velocity{0, 0});
+        player_id = collisions.add_moving_entity(Position{32, 32}, Velocity{0, 0});
         
         collisions.add_moving_entity(Position{15, 15}, Velocity{0, 0});
         collisions.add_moving_entity(Position{20, 20}, Velocity{0, 0});
@@ -90,17 +91,14 @@ public:
             pVelocity.x = (input == 'l') ? 1 : (input == 'h') ? -1 : 0;
             pVelocity.y = (input == 'j') ? 1 : (input == 'k') ? -1 : 0;
             
-            // Gonna be calculated by CollisionsManager
-            auto newPosition = Position{
-                std::max(0, std::min(nextPosition.x + pVelocity.x, level_bounds.width - 1)),
-                std::max(0, std::min(nextPosition.y + pVelocity.y, level_bounds.height - 1))
-            };
+            collisions.change_velocity(player_id, pVelocity);
+
             // Produce velocity for movement orders
             // policeManager.update(nextPosition, collisions);
             
             // Produce interactions list, should be sorted by priority
             // Like a message from PO is more important than your interaction with civilians
-            nextPosition = collisions.update(newPosition, level_bounds, interactions);
+            nextPosition = collisions.update(nextPosition, level_bounds, interactions);
             
             auto cells = city.map();
             
@@ -161,6 +159,7 @@ private:
         attron(COLOR_PAIR(2));
         for(auto pos: actor_positions) {
             // TODO: Color hostile actors with red background?
+            // FIXME: Now renders an actor under player too
             auto x = pos.x - left;
             auto y = pos.y - top;
             mvprintw(y, x, symbols::actors.at(2).c_str());
