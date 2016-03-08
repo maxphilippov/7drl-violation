@@ -9,10 +9,13 @@
 #ifndef police_h
 #define police_h
 
+#include <map>
+#include <string>
 #include <vector>
 
-#include "position.hpp"
 #include "collisions.hpp"
+#include "id.hpp"
+#include "position.hpp"
 
 struct ActivatedPO
 {
@@ -21,6 +24,10 @@ struct ActivatedPO
 
 class PoliceManager
 {
+    typedef int violation_level;
+    typedef IDData::id_type id_name;
+    std::map<id_name, violation_level> crime_level;
+
     std::vector<CollisionManager::id_type> cops_on_the_street;
 public:
     void update(Position const& player, CollisionManager& collisions)
@@ -32,6 +39,16 @@ public:
 //            for(auto i: cops_on_the_street) {
 //                collisions.change_velocity(i, Velocity{1,1});
 //            }
+    }
+    
+    void record_crime(id_name const& id, violation_level level)
+    {
+        crime_level.at(id) += level;
+    }
+    
+    auto check_crime_history(id_name const& id) const
+    {
+        return crime_level.at(id);
     }
 };
 

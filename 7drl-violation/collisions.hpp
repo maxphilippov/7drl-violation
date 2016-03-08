@@ -9,9 +9,9 @@
 #define collisions_h
 
 #include <algorithm>
-#include <unordered_map>
-#include <vector>
 #include <iterator>
+#include <vector>
+#include <unordered_map>
 
 #include "map.hpp"
 #include "interactions.hpp"
@@ -50,6 +50,9 @@ public:
         // TODO: Actually check collisions
         // For collision checking we might need to sort a vector,
         // that makes the whole id thing look bad
+        // Looks like I gotta change how data is stored,
+        // Cause we'll need to check object priorities when two entities try to enter same cell
+        // Police officer > Player > Others
         
         std::swap(positions, new_positions);
         

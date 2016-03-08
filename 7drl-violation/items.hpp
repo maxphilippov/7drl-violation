@@ -2,15 +2,17 @@
 //  items.hpp
 //  7drl-violation
 //
-//  Created by Max Philippov on 07/03/16.
-//  Copyright © 2016 AGNMTLT. All rights reserved.
+//  Copyright © 2016 Max Philippov
 //
 
 #ifndef items_h
 #define items_h
 
+#include "id.hpp"
+
 class InventoryManager
 {
+    
 };
 
 

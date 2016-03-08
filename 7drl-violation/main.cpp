@@ -18,6 +18,7 @@
 #include "map.hpp"
 #include "city.hpp"
 #include "collisions.hpp"
+#include "id.hpp"
 #include "interactions.hpp"
 #include "items.hpp"
 #include "police.hpp"
