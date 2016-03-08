@@ -14,6 +14,7 @@ struct Position
     int y;
 };
 
+// [minx, maxx) [miny, maxy)
 struct Bounds
 {
     int minx, miny;

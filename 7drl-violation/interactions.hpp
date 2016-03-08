@@ -11,6 +11,8 @@
 #include <vector>
 #include <unordered_map>
 
+#include "interface.hpp"
+
 struct TravelData
 {
     int destination_id;

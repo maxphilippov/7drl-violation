@@ -34,6 +34,11 @@ public:
     void spawn_crowd(MapCells const& cells, Position const& pos) {
         auto idx = get_map_position(cells, size, pos);
     }
+    
+    const& std::vector<int> data() const
+    {
+        return crowds_map;
+    }
 };
 
 // Crowd is like shadow in stealth games

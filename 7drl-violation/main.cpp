@@ -37,18 +37,21 @@ const std::unordered_set<char> exit_buttons = {
 std::string build_help_message() {
     auto ss = std::stringstream();
     
-    ss << "General:\n\t" << "q - exit\n\t" << "? - help\n" << "\n";
-    ss << "Movement:\n\t" << "h - left\n\t" << "l - right\n\t" << "j - down\n\t" << "k - top\n" << "spacebar - skip turn\n" << "\n";
-    ss << "Items: \n\t" << "t - phone \n" << "\n";
+    ss << "\nGeneral:\n\t" << "q - exit\n\t" << "? - help\n";
+    ss << "\nMovement:\n\t" << "h - left\n\t" << "l - right\n\t" << "j - down\n\t" << "k - top\n" << "spacebar - skip turn\n";
+    ss << "\nItems: \n\t" << "t - phone \n";
+    
+    ss << "\nTips:";
     
     ss << "\nID is the key. You have one ID attached to you, but obviously it's an ID of a criminal. So you need a magical phone with a new ID attached, that should work for a while.";
+    ss << "\n\nCrowds are like shadows, if you enter a crowd police will lose direct sight of you.";
     
     ss << "\n\nPress any key to exit";
     
     return ss.str();
 }
 
-const std::string helpMessage = build_help_message();
+const auto helpMessage = build_help_message();
 
 void render_help()
 {
@@ -121,8 +124,6 @@ private:
             
             auto level_bounds = city.bounds();
             
-            auto cells = city.map();
-            
             if(actions.count(input) != 0) {
                 
                 Velocity pVelocity;
@@ -141,7 +142,7 @@ private:
                 
                 nextPosition = collisions.get_position(player_id);
                 
-                render(nextPosition, cells, level_bounds);
+                render(nextPosition, level_bounds);
                 // OK, now the interface
                 
                 // Adds interaction for completed jobs and probably creates something
@@ -161,20 +162,35 @@ private:
             } else if(input == '?') {
                 render_help();
             } else {
-                render(nextPosition, cells, level_bounds);
+                render(nextPosition, level_bounds);
                 
                 render_log();
             }
             
             refresh();
             
+            // we can store int rewind_to_turn here and ask for input
+            // only if(rewind_to_turn == time.current_turn())
+            // --rewund_to_turn
             input = getch();
         } while(exit_buttons.count(input) == 0);
     }
     
-    void render(Position const& player, MapCells const& map, MapSize const& bounds) const
+    // TODO: Don't know where to put that, looks like an input manager
+    void travel()
     {
-        
+        auto response = confirmation_screen(half_size, "Do you want to travel to x?");
+    
+        if (response) {
+            message_log.push_back("Traveling to x");
+            time.skip_time(Hours{5});
+        } else {
+            message_log.push_back("Travel canceled");
+        }
+    }
+    
+    void render(Position const& player, MapSize const& bounds) const
+    {
         auto init_x = std::max(half_size.width - player.x, 0);
         auto init_y = std::max(half_size.height - player.y, 0);
         

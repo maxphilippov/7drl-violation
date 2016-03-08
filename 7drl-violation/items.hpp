@@ -12,7 +12,7 @@
 
 class InventoryManager
 {
-    
+    std::vector<IDData> ids;
 };
 
 

@@ -36,12 +36,16 @@ public:
     std::vector<Bounds> get_bounds()
     {
         auto r = std::vector<Bounds>();
-
-        if (blockA != nullptr && blockB != nullptr) {
-            auto boundsA = blockA->get_bounds();
-            auto boundsB = blockB->get_bounds();
-            r.insert(std::end(r), std::begin(boundsA), std::end(boundsA));
-            r.insert(std::end(r), std::begin(boundsB), std::end(boundsB));
+        
+        if (blockA != nullptr || blockB != nullptr) {
+            if (blockA != nullptr) {
+                auto boundsA = blockA->get_bounds();
+                r.insert(std::end(r), std::begin(boundsA), std::end(boundsA));
+            }
+            if (blockB != nullptr) {
+                auto boundsB = blockB->get_bounds();
+                r.insert(std::end(r), std::begin(boundsB), std::end(boundsB));
+            }
         } else {
             r.push_back(bounds);
         }
@@ -49,19 +53,21 @@ public:
         return r;
     }
     
-    // Divide block into two `steps` times
-    void divide(int seed, int steps)
+    // Divide block while it's bigger than smallest_block
+    void divide(int seed, MapSize const& smallest_block)
     {
-        if (steps == 0) return;
-        
-        auto generator = std::default_random_engine(seed);
-        auto d = std::uniform_int_distribution<>(0,10);
+        if (bounds.maxx - bounds.minx <= smallest_block.width ||
+            bounds.maxy - bounds.miny <= smallest_block.height ) {
+            return;
+        }
+        auto generator = std::default_random_engine(std::time(0));
+        auto d = std::uniform_int_distribution<>(0,1);
         
         auto dir = d(generator);
         
         Bounds boundsA, boundsB;
         
-        if (dir % 2 == 0) {
+        if (dir == 0) {
             // split horizontally
             auto middle_point = bounds.minx + (bounds.maxx - bounds.minx) / 2;
             auto d = std::uniform_int_distribution<>((int)middle_point * 0.9, (int)middle_point * 1.1);
@@ -95,12 +101,10 @@ public:
                 bounds.maxx, bounds.maxy
             };
         }
-        
         blockA = std::make_unique<CityBlock>(boundsA);
         blockB = std::make_unique<CityBlock>(boundsB);
-        
-        blockA->divide(seed, steps - 1);
-        blockB->divide(seed, steps - 1);
+            blockA->divide(seed, smallest_block);
+            blockB->divide(seed, smallest_block);
     }
 };
 
@@ -128,12 +132,12 @@ MapCells& paintBounds(MapCells& cells,
 
 MapCells generate(int seed, MapSize const& size, int cols, int rows) {
     auto bounds = Bounds{ 0, 0, size.width, size.height };
-
+    
     auto r = MapCells(size.width * size.height);
-
+    
     auto rootBlock = CityBlock{bounds};
     
-    rootBlock.divide(seed, 4);
+    rootBlock.divide(seed, MapSize{ size.width / 6, size.height / 6 });
     
     auto all_bounds = rootBlock.get_bounds();
     

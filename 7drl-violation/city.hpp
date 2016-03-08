@@ -102,7 +102,7 @@ public:
     CityManager() :
     district_count(5),
     size{ 64, 64 },
-    district_map(generate(static_cast<unsigned>(std::time(0)), size, 5, 3))
+    district_map(generate(std::chrono::system_clock::now().time_since_epoch().count(), size, 5, 3))
     {
         used_districts.reserve(district_count);
     }
