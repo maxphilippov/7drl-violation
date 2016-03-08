@@ -67,6 +67,12 @@ public:
         // TODO: On every collision generate an interaction
     }
     
+    bool raycast(MapCells const& cells, Position const& from, Position const& to) const
+    {
+        // Draw simple line and check if there are no walls or crowds on the way
+        return true;
+    }
+    
     void drop_object(id_type id) {
         if(positions.size() > id) {
             positions.erase(std::begin(positions) + id - 1);

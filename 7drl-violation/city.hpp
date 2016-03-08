@@ -117,10 +117,15 @@ public:
         return district_map;
     }
     
-    const auto get(int x, int y) const
+    const auto get(Position const& pos) const
     {
-        auto pos = x + y * size.width;
-        return district_map[pos];
+        auto idx = get_map_position(district_map, size, pos);
+        return district_map[idx];
+    }
+    
+    const int get(int x, int y) const
+    {
+        return get(Position{ x, y });
     }
     
     void update(Position const& player)
