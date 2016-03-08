@@ -24,4 +24,14 @@ bool confirmation_screen(MapSize const& half_screen_size, std::string const& mes
     return input == 'y';
 }
 
+class WindowHandler
+{
+    WINDOW* ptr;
+public:
+    WindowHandler(Bounds const& b) : ptr(newwin(b.miny, b.minx, b.maxy, b.maxx)) { wclear(ptr); wrefresh(ptr); }
+    ~WindowHandler() { delwin(ptr); }
+    
+    WINDOW* raw() const { return ptr; }
+};
+
 #endif /* interface_h */

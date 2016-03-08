@@ -10,30 +10,37 @@
 
 #include <queue>
 
-struct Job
-{
-    int turn_to_finish;
-};
-
 const unsigned int turns_in_hour = 12;
 
 class Hours
 {
-    int h;
+    float h;
 public:
-    Hours(int h) : h(h) {}
+    Hours(float h) : h(h) {}
     // I'd like to make it return a Turns type, but
     // has to overload all operators, so it's int for the moment
-    operator int() { return h * turns_in_hour; }
+    operator int() { return static_cast<int>(h * turns_in_hour); }
+};
+
+struct PurchaseCheck
+{
+    IDData data;
+    int finish_by_turn;
+};
+
+struct IDCheck
+{
+    IDData data;
 };
 
 class Timeline
 {
     int turn_counter;
-    std::queue<Job> job_queue;
+    std::queue<PurchaseCheck> purchases_checks;
+    std::queue<IDCheck> ID_checks;
     // TODO: Add job pool
 public:
-    Timeline() : job_queue()
+    Timeline()
     {
         turn_counter = 1;
     }
@@ -53,22 +60,27 @@ public:
         return turn_counter += 1;
     }
     
-    void add_job(int time_to_finish)
+    void add_purchase_check(IDData id, Hours time_to_finish)
     {
-        auto job = Job {
-            turn_counter + time_to_finish
+        // We copy IDData here, cause
+        // check is made against the balance you had after purchase
+        // not at the time of the check
+        auto c = PurchaseCheck {
+            id,
+            static_cast<int>(time_to_finish)
         };
-        job_queue.push(job);
+        
+        purchases_checks.push(c);
     }
     
     void update(InteractionQueue& interactions)
     {
-        if (job_queue.size() > 0) {
-            auto job = job_queue.front();
-            while(job.turn_to_finish == turn_counter) {
-                job_queue.pop();
+        if (purchases_checks.size() > 0) {
+            auto job = purchases_checks.front();
+            while(job.finish_by_turn == turn_counter) {
+                purchases_checks.pop();
                 interactions.add_dialog();
-                job = job_queue.front();
+                job = purchases_checks.front();
             }
         }
     }

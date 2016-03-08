@@ -9,8 +9,9 @@
 #define interactions_h
 
 #include <vector>
-#include <unordered_map>
+#include <map>
 
+#include "dialog.hpp"
 #include "interface.hpp"
 
 struct TravelData
@@ -20,12 +21,23 @@ struct TravelData
 
 struct DialogData
 {
-    
+    DialogNode root;
 };
 
-void police_officer_interaction()
+auto police_officer_interaction()
 {
-    printw("Madam, can I check your id, please?");
+    auto root = DialogNode {
+        "Madam, can I check your id, please?",
+        DialogNode::Replies {
+            {
+                "Cooperate", DialogNode {
+                    "Thank you, this might take a moment", DialogNode::Replies {}
+                }
+            }
+        }
+    };
+    
+    return root;
 }
 
 class InteractionQueue
@@ -45,26 +57,28 @@ public:
         };
         
         travels.push_back(data);
+        // Player can escape any interaction if she manages to enter travel point at that turn
+        dialogs.clear();
     }
     
+    // Not like there won't be other dialogs, but gonna use that for POs only right now
     void add_dialog() {
-        dialogs.push_back(DialogData());
+        auto data = DialogData {
+            police_officer_interaction()
+        };
+        dialogs.push_back(data);
     }
     
-    void run(std::vector<std::string>& message_log)
+    void run(MapSize const& screen_size, std::vector<std::string>& message_log)
     {
         for(auto& t: travels)
         {
             message_log.push_back("Traveled to another district");
         }
         
-        // Player can escape any interaction if he manages to enter travel point at that turn
-        // TODO: Maybe just clear other collections when we add a travel? But check is better for debugging
-        if (travels.size() == 0) {
-            for(auto& d: dialogs)
-            {
-                
-            }
+        for(auto& d: dialogs)
+        {
+            render_dialog(screen_size, d.root);
         }
         
         travels.clear();

@@ -68,6 +68,8 @@ class CityManager
     
     std::vector<District> used_districts;
     
+    std::vector<Position> district_placement;
+    
     MapSize size;
     
     // Current district map
@@ -126,6 +128,15 @@ public:
     const int get(int x, int y) const
     {
         return get(Position{ x, y });
+    }
+    
+    const auto get_neighbour_districts(int id)
+    {
+        auto n = std::vector<int>();
+        
+        for(auto& pos: district_placement) {
+            
+        }
     }
     
     void update(Position const& player)

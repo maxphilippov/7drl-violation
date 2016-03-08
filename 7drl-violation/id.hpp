@@ -14,6 +14,8 @@ struct IDData
 {
     typedef std::string id_type;
     
+    id_type name;
+    
     enum Type
     {
         human,
@@ -21,8 +23,6 @@ struct IDData
     } type;
     
     int balance;
-    
-    id_type name;
 };
 
 // One id is attached to you

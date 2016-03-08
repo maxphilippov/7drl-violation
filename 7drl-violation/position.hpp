@@ -14,6 +14,12 @@ struct Position
     int y;
 };
 
+struct WorldPosition
+{
+    int district_id;
+    Position district_position;
+};
+
 // [minx, maxx) [miny, maxy)
 struct Bounds
 {

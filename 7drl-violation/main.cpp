@@ -56,11 +56,14 @@ const auto helpMessage = build_help_message();
 void render_help()
 {
     printw(helpMessage.c_str());
+    
+    getch();
 }
 
 class Game
 {
 private:
+    const MapSize screen_size;
     const MapSize half_size;
     
     // TODO: Make a separate manager for player input
@@ -74,11 +77,11 @@ private:
     
     std::vector<std::string> message_log;
 public:
-    Game(int width, int height) : half_size{ width / 2, height / 2 }
+    Game(int width, int height) : screen_size{ width, height }, half_size{ width / 2, height / 2 }
     {
         initscr();
         noecho();
-        curs_set(FALSE);
+//        curs_set(FALSE);
         start_color();
         init_pair(1, COLOR_WHITE, COLOR_BLACK);
         init_pair(2, COLOR_BLUE, COLOR_WHITE);
@@ -98,7 +101,7 @@ public:
     void run()
     {
         interactions.add_travel(0);
-        time.add_job(4);
+        interactions.add_dialog();
         
         auto player_pos = Position{ 32, 32 };
         
@@ -151,7 +154,7 @@ private:
                 
                 // Maybe we don't need a class for that, just make a simple vector
                 // and non-member function to execute every interaction
-                interactions.run(message_log);
+                interactions.run(screen_size, message_log);
                 
                 render_log();
                 
@@ -161,11 +164,16 @@ private:
                 
             } else if(input == '?') {
                 render_help();
+            // Temporary testing
+            } else if(input == 't') {
+                travel();
             } else {
                 render(nextPosition, level_bounds);
                 
                 render_log();
             }
+
+//            mvcur(0, 0, half_size.height + 1, half_size.width);
             
             refresh();
             
@@ -207,7 +215,7 @@ private:
                 auto world_x = left + x;
                 auto world_y = top + y;
                 auto code = city.get(world_x, world_y);
-                mvprintw(y, x, symbols::mapTiles.at(code).c_str());
+                mvaddch(y, x, symbols::mapTiles.at(code));
             }
         }
         attroff(COLOR_PAIR(1));
@@ -221,13 +229,13 @@ private:
             // FIXME: Now renders an actor under player too
             auto x = pos.x - left;
             auto y = pos.y - top;
-            mvprintw(y, x, symbols::actors.at(2).c_str());
+            mvaddch(y, x, symbols::actors.at(2));
         }
         attroff(COLOR_PAIR(2));
         
         // Player
         attron(COLOR_PAIR(3));
-        mvprintw(half_size.height, half_size.width, symbols::actors.at(0).c_str());
+        mvaddch(half_size.height, half_size.width, symbols::actors.at(0));
         attroff(COLOR_PAIR(3));
     }
     
@@ -246,7 +254,7 @@ private:
 
 int main(int argc, const char * argv[]) {
     // TODO: Reduce screen size to 20, 20 instead of any kind of vision control
-    auto g = Game(80, 60);
+    auto g = Game(80, 30);
     
     g.run();
     
