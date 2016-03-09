@@ -60,7 +60,7 @@ void print_node(WINDOW * w, DialogNode const& d)
 
 void render_dialog(MapSize const& screen, DialogNode const& root)
 {
-    auto b = Bounds { 0, 0, screen.width, screen.height };
+    auto b = Bounds { 0, screen.height, screen.width, screen.height };
     auto w = WindowHandler {b};
 
     print_node(w.raw(), root);
