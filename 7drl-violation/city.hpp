@@ -140,7 +140,7 @@ public:
         }
     }
     
-    void update(Position const& player)
+    void update(Position const& player, int turn_counter)
     {
         
     }

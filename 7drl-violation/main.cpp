@@ -111,9 +111,6 @@ public:
 
     void run()
     {
-
-        interactions.add_dialog();
-
         auto player_pos = Position{ 0, 0 };
 
         player_id = collisions.add_moving_entity(player_pos);
@@ -149,6 +146,8 @@ private:
 
             if (actions.count(input) != 0) {
 
+                auto turn_counter = time.current_turn();
+
                 Velocity pVelocity;
                 // should push velocity to CollisionsManager to let it later handle things
                 pVelocity.x = (input == 'l') ? 1 : (input == 'h') ? -1 : 0;
@@ -157,7 +156,7 @@ private:
                 collisions.change_velocity(player_id, pVelocity);
 
                 // Produce velocity for movement orders
-                police.update(nextPosition, collisions);
+                police.update(nextPosition, collisions, turn_counter);
 
                 // Produce interactions list, should be sorted by priority
                 // Like a message from PO is more important than your interaction with civilians
@@ -165,7 +164,7 @@ private:
 
                 nextPosition = collisions.get_position(player_id);
 
-                city.update(nextPosition);
+                city.update(nextPosition, turn_counter);
 
                 // Adds interaction for completed jobs and probably creates something
                 // like CityChange with data on what to change in city before next turn
@@ -191,13 +190,11 @@ private:
                 }
             }
 
-            interactions.run(screen_size, message_log);
-
-            refresh();
-            clear();
             render(nextPosition, level_bounds);
 
             render_log(message_log);
+
+            interactions.run(screen_size, message_log);
 
             //            mvcur(0, 0, half_size.height + 1, half_size.width);
 
