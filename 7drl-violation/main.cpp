@@ -281,7 +281,7 @@ private:
 
 int main(int argc, const char * argv[]) {
     // FIXME: Reduce screen size to 20, 20 instead of any kind of vision control
-    auto g = Game(80, 30);
+    Game g(80, 30);
     
     g.run();
     
