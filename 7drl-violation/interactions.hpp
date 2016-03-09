@@ -71,17 +71,16 @@ public:
     
     void run(MapSize const& screen_size, std::vector<std::string>& message_log)
     {
-        for(auto& t: travels)
+        for(auto const& t: travels)
         {
             message_log.push_back("Traveled to another district");
         }
+        travels.clear();
         
-        for(auto& d: dialogs)
+        for(auto const& d: dialogs)
         {
             render_dialog(screen_size, d.root);
         }
-        
-        travels.clear();
         dialogs.clear();
     }
 };

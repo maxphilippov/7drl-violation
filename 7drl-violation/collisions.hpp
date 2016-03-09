@@ -16,23 +16,36 @@
 #include "map.hpp"
 #include "interactions.hpp"
 #include "position.hpp"
+#include "city.hpp"
+
+std::unordered_set<MapTile> unpassable_tiles = {
+    MapTile::Wall
+};
 
 class CollisionManager
 {
     std::vector<Position> positions;
     std::vector<Velocity> velocities;
+
+    int last_id;
+    std::vector<int> object_ids;
 public:
     typedef std::vector<Position>::size_type id_type;
 
-    CollisionManager()
+    CollisionManager() :
+    last_id(0)
     {
+        object_ids.reserve(256);
         positions.reserve(64);
         velocities.reserve(64);
     }
     
     // Returns player position, temporary?
-    void update(Position const& player, MapSize const& level_bounds, InteractionQueue& interactions)
+    void update(Position const& around_point, // Point of interest for us, maybe chagne to bounds?
+                CityManager const& city,
+                InteractionQueue& interactions)
     {
+        auto level_bounds = city.bounds();
         // Update all entities positions (actually should update just nearest to the player)
         auto new_positions = std::vector<Position>(positions.size());
         
@@ -40,11 +53,15 @@ public:
                        std::end(positions),
                        std::begin(velocities),
                        std::begin(new_positions),
-                       [&level_bounds](Position const& p, Velocity const& v) {
-                           return Position{
+                       [&level_bounds, &city](Position const& p, Velocity const& v) {
+                           auto new_pos = Position{
                                std::max(0, std::min(p.x + v.x, level_bounds.width - 1)),
                                std::max(0, std::min(p.y + v.y, level_bounds.height - 1))
                            };
+
+                           auto tile = city.get(new_pos);
+
+                           return (unpassable_tiles.count(tile) == 0) ? new_pos : p;
                        });
         
         // TODO: Actually check collisions
@@ -79,10 +96,13 @@ public:
             velocities.erase(std::begin(velocities) + id - 1);
         }
     }
-    
-    void change_velocity(id_type id, Velocity vel)
+
+    // Return false if there's no such object registered for collisions
+    // which means we disposed it already
+    bool change_velocity(id_type id, Velocity vel)
     {
         velocities.at(id) = vel;
+        return true;
     }
     
     Position const& get_position(id_type id) const
@@ -121,7 +141,7 @@ public:
                                std::begin(r),
                                [&bounds](Position const& p) { return bounds.inside(p); } );
         
-        r.resize(std::distance(r.begin(), it));
+        r.resize(std::distance(std::begin(r), it));
         
         return r;
     }

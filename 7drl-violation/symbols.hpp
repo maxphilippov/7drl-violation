@@ -10,20 +10,22 @@
 
 #include <unordered_map>
 
+#include "map.hpp"
+
 typedef std::unordered_map<int, char> CharMap;
 
 namespace symbols
 {
-    const CharMap mapTiles = {
-        { 0, '.' }, // Empty space
-        { 1, '#' }, // Wall
-        { 2, '+' }, // Road
-        { 3, '=' }, // Door
+    const std::unordered_map<MapTile, char> mapTiles = {
+        { MapTile::Empty, '.' }, // Empty space
+        { MapTile::Wall, '#' }, // Wall
+        { MapTile::Road, '+' }, // Road
+        { MapTile::Door, '=' }, // Door
+        { MapTile::Crowd, 'C' },
     };
 
     const CharMap actors = {
         { 0, '@' }, // Player
-        { 1, 'C' }, // Citizen
         { 2, 'P' }, // Police officer
         { 3, 'G' }, // Gangstar
         { 4, 'D' }, // Android

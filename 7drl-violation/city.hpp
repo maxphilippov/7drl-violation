@@ -43,7 +43,8 @@ class District
     std::vector<Position> bars;
 public:
     // TODO: Pass data as parameter?
-    District(int id, int pop, int crime_level, int law_power, int points_of_interest, int private_satelites) : data{id, pop, crime_level, law_power, points_of_interest, private_satelites}
+    District(int id, int pop, int crime_level, int law_power, int points_of_interest, int private_satelites) :
+    data{id, pop, crime_level, law_power, points_of_interest, private_satelites}
     {
         std::random_device rd;
         auto gen = std::mt19937(rd());
@@ -99,12 +100,12 @@ class CityManager
             district_count += 1;
         }
     }
-    
 public:
     CityManager() :
     district_count(5),
-    size{ 64, 64 },
-    district_map(generate(std::chrono::system_clock::now().time_since_epoch().count(), size, 5, 3))
+    size{ 128, 128 },
+    district_map(generate(std::chrono::system_clock::now().time_since_epoch().count(), size))
+//    district_map(size.width * size.height)
     {
         used_districts.reserve(district_count);
     }
@@ -125,7 +126,7 @@ public:
         return district_map[idx];
     }
     
-    const int get(int x, int y) const
+    const auto get(int x, int y) const
     {
         return get(Position{ x, y });
     }
@@ -134,7 +135,7 @@ public:
     {
         auto n = std::vector<int>();
         
-        for(auto& pos: district_placement) {
+        for(auto const& pos: district_placement) {
             
         }
     }

@@ -2,8 +2,7 @@
 //  police.hpp
 //  7drl-violation
 //
-//  Created by Max Philippov on 07/03/16.
-//  Copyright © 2016 AGNMTLT. All rights reserved.
+//  Copyright © 2016 Max Philippov
 //
 
 #ifndef police_h
@@ -25,6 +24,7 @@ struct ActivatedPO
 class CriminalRecord
 {
     WorldPosition last_known_location; // should always be present
+    // BITMASK MB?
     int violation_level;
 };
 
@@ -46,11 +46,11 @@ public:
         
         // Generate a new PO
         // TODO: add some check to that
-//            auto id = collisions.add_moving_entity(Position{0, 0});
-//            cops_on_the_street.push_back(id);
-//            for(auto i: cops_on_the_street) {
-//                collisions.change_velocity(i, Velocity{1,1});
-//            }
+//        auto id = collisions.add_moving_entity(Position{0, 0});
+//        cops_on_the_street.push_back(id);
+//        for(auto i: cops_on_the_street) {
+//            collisions.change_velocity(i, Velocity{1,1});
+//        }
     }
     
     void record_crime(id_name const& id, Position* pos, violation_level level)

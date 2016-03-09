@@ -10,6 +10,9 @@
 
 #include <queue>
 
+#include "id.hpp"
+#include "interactions.hpp"
+
 const unsigned int turns_in_hour = 12;
 
 class Hours
@@ -83,6 +86,7 @@ public:
                 job = purchases_checks.front();
             }
         }
+        next_turn();
     }
 };
 

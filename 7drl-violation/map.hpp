@@ -12,6 +12,14 @@
 
 #include "position.hpp"
 
+enum MapTile {
+    Empty,
+    Wall,
+    Road,
+    Door,
+    Crowd
+};
+
 typedef int MapSide;
 
 struct MapSize
@@ -20,7 +28,7 @@ struct MapSize
     MapSide height;
 };
 
-typedef std::vector<int> MapCells;
+typedef std::vector<MapTile> MapCells;
 typedef MapCells::size_type MapIndex;
 
 MapIndex get_map_position(MapCells const& map, MapSize const& size, Position const& pos)
