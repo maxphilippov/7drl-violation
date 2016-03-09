@@ -53,7 +53,7 @@ public:
                        std::end(positions),
                        std::begin(velocities),
                        std::begin(new_positions),
-                       [&level_bounds, &city](Position const& p, Velocity const& v) {
+                       [&level_bounds, &city](auto const& p, auto const& v) {
                            auto new_pos = Position{
                                std::max(0, std::min(p.x + v.x, level_bounds.width - 1)),
                                std::max(0, std::min(p.y + v.y, level_bounds.height - 1))
@@ -77,7 +77,7 @@ public:
         std::transform(std::begin(velocities),
                        std::end(velocities),
                        std::begin(velocities),
-                       [](Velocity const& v) {
+                       [](auto const& v) {
                            return Velocity{ 0, 0 };
                        });
         
@@ -139,7 +139,7 @@ public:
         auto it = std::copy_if(std::begin(positions),
                                std::end(positions),
                                std::begin(r),
-                               [&bounds](Position const& p) { return bounds.inside(p); } );
+                               [&bounds](auto const& p) { return bounds.inside(p); } );
         
         r.resize(std::distance(std::begin(r), it));
         

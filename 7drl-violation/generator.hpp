@@ -145,7 +145,7 @@ MapCells generate(int seed, MapSize const& size) {
 
     std::for_each(std::begin(all_bounds),
                   std::end(all_bounds),
-                  [](Bounds& b) { b = b.shrink(3); });
+                  [](auto& b) { b = b.shrink(3); });
 
     paintBounds(r, bounds, all_bounds, MapTile::Empty, MapTile::Wall);
 

@@ -94,7 +94,7 @@ class CityManager
     {
         auto d = std::find_if(std::begin(used_districts),
                               std::end(used_districts),
-                              [id](District const& d)->bool { return d.get_data().id == id; });
+                              [id](auto const& d)->bool { return d.get_data().id == id; });
         if (d != std::end(used_districts)) {
             used_districts.erase(d);
             district_count += 1;

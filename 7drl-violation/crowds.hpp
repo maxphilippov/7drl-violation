@@ -28,7 +28,7 @@ public:
     {
         size = newsize;
         crowds_map.resize(size.width * size.height);
-        std::for_each(std::begin(crowds_map), std::end(crowds_map), [](int v) { v = 0 });
+        std::for_each(std::begin(crowds_map), std::end(crowds_map), [](auto v) { v = 0 });
     }
     
     void spawn_crowd(MapCells const& cells, Position const& pos) {
