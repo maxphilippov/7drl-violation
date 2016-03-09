@@ -101,7 +101,7 @@ public:
 
     ~Game()
     {
-        printw("Thanks for playing Violation. See you soon, mam.");
+        printw("Thanks for playing Violation. See you soon, ma'am.");
         // FIXME: Commented for tests
         // getch();
         endwin();
@@ -111,7 +111,6 @@ public:
 
     void run()
     {
-        interactions.add_dialog();
 
         auto player_pos = Position{ 0, 0 };
 
@@ -135,7 +134,7 @@ private:
         while(true) {
             if (exit_buttons.count(input) > 0) {
                 // FIXME:
-                //                auto exit = confirmation_screen(half_size, "Are you sure you want to exit?");
+                //                auto exit = confirmation_screen(screen_size, "Are you sure you want to exit?");
                 auto exit = true; // autoexit for debugging
                 if (exit) {
                     break;
@@ -164,17 +163,6 @@ private:
 
                 nextPosition = collisions.get_position(player_id);
 
-                render(nextPosition, level_bounds);
-                // OK, now the interface
-
-                // Maybe we don't need a class for that, just make a simple vector
-                // and non-member function to execute every interaction
-                interactions.run(screen_size, message_log);
-
-                // If any dialog pops up, maybe it should return player input?
-
-                render_log(message_log);
-
                 city.update(nextPosition);
 
                 // Adds interaction for completed jobs and probably creates something
@@ -184,15 +172,19 @@ private:
             } else {
                 if(input == '?') {
                     render_help();
-                    // FIXME: Temporary testing
                 } else if(input == 't') {
                     travel();
-                } else {
-                    render(nextPosition, level_bounds);
-
-                    render_log(message_log);
+                    interactions.add_dialog();
                 }
             }
+
+            interactions.run(screen_size, message_log);
+
+            refresh();
+            clear();
+            render(nextPosition, level_bounds);
+
+            render_log(message_log);
 
             //            mvcur(0, 0, half_size.height + 1, half_size.width);
 
@@ -206,14 +198,13 @@ private:
     }
 
     // TODO: Don't know where to put that, looks like an input manager
-    void travel()
+    void travel(int id = 0)
     {
-        auto response = confirmation_screen(half_size, "Do you want to travel to x?");
+        auto response = confirmation_screen(screen_size, "Do you want to travel to x?");
 
         if (response) {
-            message_log.push_back("Traveling to x");
-            // TODO: temp id
-            interactions.add_travel(0);
+            // FIXME: temp id
+            interactions.add_travel(id);
         } else {
             message_log.push_back("Travel canceled");
         }
@@ -266,9 +257,9 @@ private:
     {
         if (message_log.size() > 0) {
             int y_offset = 2;
-            // TODO: Reverse logging
-            for(auto const&m: message_log) {
-                mvprintw(screen_size.height + y_offset, 3, m.c_str());
+            auto end = std::rend(message_log);
+            for(auto it = std::rbegin(message_log); it != end; ++it) {
+                mvprintw(screen_size.height + y_offset, 3, it->c_str());
                 y_offset += 1;
             }
         }

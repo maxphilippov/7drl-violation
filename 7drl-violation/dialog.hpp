@@ -29,10 +29,12 @@ void print_node(WINDOW * w, DialogNode const& d)
         y_pos += 2;
         mvwprintw(w, y_pos, x_pos + 1, r.first.c_str());
     }
-    
-    wrefresh(w);
 
-    auto choice = getch();
+    auto choice = wgetch(w);
+
+    if (!d.replies.empty()) {
+        // process choice
+    }
 }
 
 void render_dialog(MapSize const& screen, DialogNode const& root)
@@ -43,5 +45,21 @@ void render_dialog(MapSize const& screen, DialogNode const& root)
     print_node(w.raw(), root);
 }
 
+// Constant declarations
+auto police_officer_interaction()
+{
+    auto root = DialogNode {
+        "Ma'am, can I check your id, please?",
+        DialogNode::Replies {
+            {
+                "Cooperate", DialogNode {
+                    "Thank you, this might take a moment", DialogNode::Replies {}
+                }
+            }
+        }
+    };
+
+    return root;
+}
 
 #endif /* dialog_h */

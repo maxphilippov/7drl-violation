@@ -10,6 +10,7 @@
 
 #include <vector>
 #include <map>
+#include <sstream>
 
 #include "dialog.hpp"
 #include "interface.hpp"
@@ -23,22 +24,6 @@ struct DialogData
 {
     DialogNode root;
 };
-
-auto police_officer_interaction()
-{
-    auto root = DialogNode {
-        "Madam, can I check your id, please?",
-        DialogNode::Replies {
-            {
-                "Cooperate", DialogNode {
-                    "Thank you, this might take a moment", DialogNode::Replies {}
-                }
-            }
-        }
-    };
-    
-    return root;
-}
 
 class InteractionQueue
 {
@@ -57,8 +42,6 @@ public:
         };
         
         travels.push_back(data);
-        // Player can escape any interaction if she manages to enter travel point at that turn
-        dialogs.clear();
     }
     
     // Not like there won't be other dialogs, but gonna use that for POs only right now
@@ -73,14 +56,19 @@ public:
     {
         for(auto const& t: travels)
         {
-            message_log.push_back("Traveled to another district");
+            std::stringstream ss;
+            ss << "Traveled to district #" << t.destination_id;
+            message_log.push_back(ss.str());
+        }
+
+        // Player can escape any interaction if she manages to enter travel point at that turn
+        if (travels.empty()) {
+            for(auto const& d: dialogs)
+            {
+                render_dialog(screen_size, d.root);
+            }
         }
         travels.clear();
-        
-        for(auto const& d: dialogs)
-        {
-            render_dialog(screen_size, d.root);
-        }
         dialogs.clear();
     }
 };
