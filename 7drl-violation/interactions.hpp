@@ -13,6 +13,7 @@
 #include <sstream>
 
 #include "dialog.hpp"
+#include "id.hpp"
 #include "interface.hpp"
 
 struct TravelData
@@ -25,10 +26,18 @@ struct DialogData
     DialogNode root;
 };
 
+struct PoliceAlert
+{
+    IDData id;
+    Position pos;
+    int violation_level;
+};
+
 class InteractionQueue
 {
     std::vector<TravelData> travels;
     std::vector<DialogData> dialogs;
+    std::vector<PoliceAlert> police_alerts;
 public:
     InteractionQueue()
     {
@@ -51,6 +60,16 @@ public:
         };
         dialogs.push_back(data);
     }
+
+    void add_police_alert(IDData id, Position pos, int violation_level)
+    {
+        auto a = PoliceAlert {
+            id,
+            pos,
+            violation_level
+        };
+        police_alerts.push_back(a);
+    }
     
     void run(MapSize const& screen_size, std::vector<std::string>& message_log)
     {
@@ -61,13 +80,19 @@ public:
             message_log.push_back(ss.str());
         }
 
+        for(auto const& a: police_alerts) {
+            message_log.push_back("Looks like someone called a police");
+        }
+
         // Player can escape any interaction if she manages to enter travel point at that turn
+        // except JUSTICE
         if (travels.empty()) {
             for(auto const& d: dialogs)
             {
                 render_dialog(screen_size, d.root);
             }
         }
+        police_alerts.clear();
         travels.clear();
         dialogs.clear();
     }

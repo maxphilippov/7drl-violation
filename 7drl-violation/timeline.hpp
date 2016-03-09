@@ -28,6 +28,8 @@ public:
 struct PurchaseCheck
 {
     IDData data;
+    Position pos;
+    int price;
     int finish_by_turn;
 };
 
@@ -63,14 +65,16 @@ public:
         return turn_counter += 1;
     }
     
-    void add_purchase_check(IDData id, Hours time_to_finish)
+    void add_purchase_check(IDData id, Position pos, int price, Hours time_to_finish)
     {
         // We copy IDData here, cause
         // check is made against the balance you had after purchase
         // not at the time of the check
         auto c = PurchaseCheck {
             id,
-            static_cast<int>(time_to_finish)
+            pos,
+            price,
+            turn_counter + static_cast<int>(time_to_finish)
         };
         
         purchases_checks.push(c);
@@ -82,7 +86,10 @@ public:
             auto job = purchases_checks.front();
             while(job.finish_by_turn == turn_counter) {
                 purchases_checks.pop();
-                interactions.add_dialog();
+                interactions.add_police_alert(
+                                              //FIXME: Violation level
+                    job.data, job.pos, 1
+                );
                 job = purchases_checks.front();
             }
         }

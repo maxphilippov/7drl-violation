@@ -112,6 +112,8 @@ public:
     void run()
     {
 
+        interactions.add_dialog();
+
         auto player_pos = Position{ 0, 0 };
 
         player_id = collisions.add_moving_entity(player_pos);
@@ -170,11 +172,22 @@ private:
                 time.update(interactions);
 
             } else {
-                if(input == '?') {
-                    render_help();
-                } else if(input == 't') {
-                    travel();
-                    interactions.add_dialog();
+                switch(input) {
+                    case '?':
+                        render_help();
+                        break;
+                    case 't':
+                        travel();
+                        break;
+                    case 'p':
+                    {
+                        auto r = confirmation_screen(screen_size, "You sure you want to purchase some stuff?");
+                        if (r) {
+                            auto id = items.get_id();
+                            time.add_purchase_check(id, nextPosition, 3000, Hours(1.5f));
+                        }
+                    }
+                        break;
                 }
             }
 
