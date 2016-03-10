@@ -46,4 +46,16 @@ struct Velocity
     int y;
 };
 
+// By some dude on stackoverflow
+template <typename T> int sgn(T val) {
+    return (T(0) < val) - (val < T(0));
+}
+
+auto towards(Position const& a, Position const& b) {
+    return Velocity {
+        sgn(a.x - b.x),
+        sgn(a.y - b.y)
+    };
+}
+
 #endif /* position_h */

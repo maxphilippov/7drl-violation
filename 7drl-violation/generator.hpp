@@ -15,16 +15,9 @@
 #include "map.hpp"
 #include "position.hpp"
 
-class Building
-{
-    Bounds bounds;
-    std::vector<Position> doors;
-};
-
 class CityBlock
 {
     std::unique_ptr<CityBlock> blockA, blockB;
-    std::vector<Building> buildings;
     Bounds bounds;
 public:
     CityBlock(Bounds bounds) :
@@ -33,14 +26,14 @@ public:
     bounds(bounds) {}
 
     // Go deep till the "leaves" and get its bounds
-    std::vector<Bounds> get_bounds()
+    std::vector<Bounds> all_bounds()
     {
         auto r = std::vector<Bounds>();
 
         if (blockA != nullptr && blockB != nullptr) {
-            auto boundsA = blockA->get_bounds();
+            auto boundsA = blockA->all_bounds();
             r.insert(std::end(r), std::begin(boundsA), std::end(boundsA));
-            auto boundsB = blockB->get_bounds();
+            auto boundsB = blockB->all_bounds();
             r.insert(std::end(r), std::begin(boundsB), std::end(boundsB));
         } else {
             r.push_back(bounds);
@@ -49,10 +42,20 @@ public:
         return r;
     }
 
-    // Divide block while it's bigger than smallest_block
-    void divide(int seed, MapSize const& smallest_block)
+    Bounds get_bounds()
     {
-        auto generator = std::default_random_engine(seed);
+        return bounds;
+    }
+
+    // Divide block while it's bigger than smallest_block
+    void divide(int seed, MapSize const& smallest_block, int margin = 0)
+    {
+        if (bounds.maxx - bounds.minx <= smallest_block.width * 2 ||
+            bounds.maxy - bounds.miny <= smallest_block.height * 2) {
+            return;
+        }
+
+        auto generator = std::mt19937(seed);
         auto d = std::uniform_int_distribution<>(0,1);
 
         auto dir = d(generator);
@@ -62,46 +65,48 @@ public:
         if (dir == 0) {
             // split horizontally
             auto middle_point = bounds.minx + (bounds.maxx - bounds.minx) / 2;
-            auto d = std::uniform_int_distribution<>((int)middle_point * 0.9, (int)middle_point * 1.1);
+            auto lower = static_cast<int>(middle_point * 0.8);
+            auto higher = static_cast<int>(middle_point * 1.2);
+            auto d = std::uniform_int_distribution<>(std::min(lower, higher),
+                                                     std::max(lower, higher));
 
             auto slice = d(generator);
 
             boundsA = {
                 bounds.minx, bounds.miny,
-                slice, bounds.maxy
+                std::min(slice, bounds.maxx), bounds.maxy
             };
 
             boundsB = {
-                slice, bounds.miny,
+                std::max(slice + margin, bounds.minx), bounds.miny,
                 bounds.maxx, bounds.maxy
             };
 
         } else {
             // split vertically
             auto middle_point = bounds.miny + (bounds.maxy - bounds.miny) / 2;
-            auto d = std::uniform_int_distribution<>((int)middle_point * 0.9, (int)middle_point * 1.1);
+            auto lower = static_cast<int>(middle_point * 0.8);
+            auto higher = static_cast<int>(middle_point * 1.2);
+            auto d = std::uniform_int_distribution<>(std::min(lower, higher),
+                                                     std::max(lower, higher));
 
             auto slice = d(generator);
 
             boundsA = {
                 bounds.minx, bounds.miny,
-                bounds.maxx, slice
+                bounds.maxx, std::min(slice, bounds.maxy)
             };
 
             boundsB = {
-                bounds.minx, slice,
+                bounds.minx, std::max(slice + margin, bounds.miny),
                 bounds.maxx, bounds.maxy
             };
         }
 
-        // TODO: Fix that, can go crazy infinite, temporary (* 2)
-        if (bounds.maxx - bounds.minx > smallest_block.width * 2 &&
-            bounds.maxy - bounds.miny > smallest_block.height * 2 ) {
-            blockA = std::make_unique<CityBlock>(boundsA);
-            blockB = std::make_unique<CityBlock>(boundsB);
-            blockA->divide(seed + 1, smallest_block);
-            blockB->divide(seed + 2, smallest_block);
-        }
+        blockA = std::make_unique<CityBlock>(boundsA);
+        blockB = std::make_unique<CityBlock>(boundsB);
+        blockA->divide(seed + 1, smallest_block, margin);
+        blockB->divide(seed + 2, smallest_block, margin);
     }
 };
 
@@ -122,7 +127,9 @@ MapCells& paintBounds(MapCells& cells,
         for(auto j = miny; j < maxy; ++j) {
             for(auto i = minx; i < maxx; ++i) {
                 auto pos = i + j * mapWidth;
-                cells.at(pos) = (j != miny && i != minx && j != maxy - 1 && i != maxx - 1) ? value : borderValue;
+                cells.at(pos) = (j != miny && i != minx &&
+                                 j != maxy - 1 && i != maxx - 1)
+                ? value : borderValue;
             }
         }
     }
@@ -131,23 +138,36 @@ MapCells& paintBounds(MapCells& cells,
 }
 
 MapCells generate(int seed, MapSize const& size) {
-    auto bounds = Bounds{ 0, 0, size.width, size.height };
+    auto level_bounds = Bounds{ 0, 0, size.width, size.height };
 
     auto r = MapCells(size.width * size.height, MapTile::Road);
 
-    auto rootBlock = CityBlock(bounds);
+    auto rootBlock = CityBlock{ level_bounds };
 
-    auto minwidth = std::max(size.width / 12, 6);
-    auto minheight = std::max(size.height / 12, 6);
+    auto minwidth = std::max(size.width / 4, 6);
+    auto minheight = std::max(size.height / 4, 6);
     rootBlock.divide(seed, MapSize{ minwidth, minheight });
 
-    auto all_bounds = rootBlock.get_bounds();
+    auto all_bounds = rootBlock.all_bounds();
 
     std::for_each(std::begin(all_bounds),
                   std::end(all_bounds),
-                  [](auto& b) { b = b.shrink(3); });
+                  [](auto& b) { b = b.shrink(2); }
+                  );
 
-    paintBounds(r, bounds, all_bounds, MapTile::Empty, MapTile::Wall);
+    paintBounds(r, level_bounds, all_bounds, MapTile::Empty, MapTile::Empty);
+
+    // FIXME: It's terrible, but I'm trying to reuse CityBlock for building
+    // generation
+    std::for_each(std::begin(all_bounds),
+                  std::end(all_bounds),
+                  [&r, seed, &level_bounds](auto const& b) {
+                          auto block = CityBlock{ b };
+                          block.divide(seed, MapSize{ 8, 8 }, 2);
+                          auto bounds = block.all_bounds();
+                          paintBounds(r, level_bounds, bounds, MapTile::Empty, MapTile::Wall);
+                      
+                  });
 
     return r;
 }

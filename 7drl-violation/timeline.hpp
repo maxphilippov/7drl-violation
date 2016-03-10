@@ -86,10 +86,12 @@ public:
             auto job = purchases_checks.front();
             while(job.finish_by_turn == turn_counter) {
                 purchases_checks.pop();
-                interactions.add_police_alert(
-                                              //FIXME: Violation level
-                    job.data, job.pos, 1
-                );
+                if (job.data.balance - job.price < 0) {
+                    interactions.add_police_alert(
+                        //FIXME: Violation level
+                        job.data, job.pos, 1
+                    );
+                }
                 job = purchases_checks.front();
             }
         }

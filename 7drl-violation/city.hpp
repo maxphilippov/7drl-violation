@@ -103,19 +103,19 @@ class CityManager
 public:
     CityManager() :
     district_count(5),
-    size{ 128, 128 },
+    size{ 512, 512 },
     district_map(generate(std::chrono::system_clock::now().time_since_epoch().count(), size))
 //    district_map(size.width * size.height)
     {
         used_districts.reserve(district_count);
     }
     
-    const MapSize& bounds() const
+    const auto& bounds() const
     {
         return size;
     }
     
-    const MapCells& map() const
+    const auto& map() const
     {
         return district_map;
     }

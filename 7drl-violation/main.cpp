@@ -126,9 +126,9 @@ public:
         loop(player_pos);
     }
 private:
-    void loop(Position const& player)
+    void loop(Position const& init_pos)
     {
-        auto nextPosition = player;
+        auto player = init_pos;
         auto input = '\0';
         while(true) {
             if (exit_buttons.count(input) > 0) {
@@ -148,6 +148,11 @@ private:
 
                 auto turn_counter = time.current_turn();
 
+                auto player_interest = Bounds {
+                    player.x - screen_size.width, player.y - screen_size.width,
+                    player.x + screen_size.height, player.y + screen_size.height
+                };
+
                 Velocity pVelocity;
                 // should push velocity to CollisionsManager to let it later handle things
                 pVelocity.x = (input == 'l') ? 1 : (input == 'h') ? -1 : 0;
@@ -156,15 +161,15 @@ private:
                 collisions.change_velocity(player_id, pVelocity);
 
                 // Produce velocity for movement orders
-                police.update(nextPosition, collisions, turn_counter);
+                police.update(player_interest, collisions, turn_counter);
+
+                city.update(player, turn_counter);
 
                 // Produce interactions list, should be sorted by priority
                 // Like a message from PO is more important than your interaction with civilians
-                collisions.update(nextPosition, city, interactions);
+                collisions.update(player_interest, city, interactions);
 
-                nextPosition = collisions.get_position(player_id);
-
-                city.update(nextPosition, turn_counter);
+                player = collisions.get_position(player_id);
 
                 // Adds interaction for completed jobs and probably creates something
                 // like CityChange with data on what to change in city before next turn
@@ -175,28 +180,21 @@ private:
                     case '?':
                         render_help();
                         break;
+                        // FIXME: Testing
                     case 't':
                         travel();
                         break;
                     case 'p':
-                    {
-                        auto r = confirmation_screen(screen_size, "You sure you want to purchase some stuff?");
-                        if (r) {
-                            auto id = items.get_id();
-                            time.add_purchase_check(id, nextPosition, 3000, Hours(1.5f));
-                        }
-                    }
+                        purchase(player);
                         break;
                 }
             }
 
-            render(nextPosition, level_bounds);
+            render(player, level_bounds);
 
             render_log(message_log);
 
             interactions.run(screen_size, message_log);
-
-            //            mvcur(0, 0, half_size.height + 1, half_size.width);
 
             refresh();
 
@@ -204,6 +202,20 @@ private:
             // only if(rewind_to_turn == time.current_turn())
             // --rewind_to_turn
             input = getch();
+        }
+    }
+
+    void purchase(Position const& player)
+    {
+        auto r = confirmation_screen(screen_size, "You sure you want to purchase some stuff?");
+        if (r) {
+            auto id = items.get_id();
+            auto cost = 3000;
+            auto balance = items.pay(cost);
+            time.add_purchase_check(id, player, cost, Hours(1.5f));
+            std::stringstream ss;
+            ss << "Your balance is: " << balance;
+            message_log.push_back(ss.str());
         }
     }
 

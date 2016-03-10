@@ -12,6 +12,7 @@
 #include <iterator>
 #include <vector>
 
+#include "city.hpp"
 #include "map.hpp"
 #include "position.hpp"
 
@@ -35,7 +36,7 @@ public:
         auto idx = get_map_position(cells, size, pos);
     }
     
-    const& std::vector<int> data() const
+    auto const& data() const
     {
         return crowds_map;
     }
