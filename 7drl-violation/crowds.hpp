@@ -18,8 +18,11 @@
 
 class CrowdManager
 {
+    static const auto spawn_interval = 3;
     MapSize size;
-    std::vector<int> crowds_map;
+    MapCells crowds_map;
+
+    std::vector<Position> crowd_centers;
 public:
     CrowdManager(MapSize size) :
     size(size),
@@ -29,16 +32,33 @@ public:
     {
         size = newsize;
         crowds_map.resize(size.width * size.height);
-        std::for_each(std::begin(crowds_map), std::end(crowds_map), [](auto v) { v = 0 });
+        std::for_each(std::begin(crowds_map),
+                      std::end(crowds_map),
+                      [](auto v) { v = MapTile::Empty; });
+    }
+
+    void update(Bounds const& simulation_bounds, MapCells const& map, int turn_count)
+    {
+        if (turn_count % spawn_interval == 0) {
+            // FIXME:
+            srand(turn_count * simulation_bounds.maxx);
+            auto center = Position{ rand() % size.width, rand() % size.height };
+            spawn_crowd(map, center);
+        }
     }
     
-    void spawn_crowd(MapCells const& cells, Position const& pos) {
-        auto idx = get_map_position(cells, size, pos);
-    }
-    
-    auto const& data() const
+    auto const& map() const
     {
         return crowds_map;
+    }
+private:
+    void spawn_crowd(MapCells const& cells, Position const& pos)
+    {
+        auto idx = get_map_position(cells, size, pos);
+
+        crowds_map.at(idx) = MapTile::Crowd;
+
+        crowd_centers.push_back(pos);
     }
 };
 

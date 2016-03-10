@@ -40,6 +40,18 @@ struct Bounds
     }
 };
 
+auto from_center(Position const& center, int width, int height) {
+    auto x_first_half = width / 2;
+    auto x_second_half = width - x_first_half;
+    auto y_first_half = height / 2;
+    auto y_second_half = height - y_first_half;
+
+    return Bounds {
+        center.x - x_first_half, center.y - y_first_half,
+        center.x + x_second_half, center.y + y_second_half
+    };
+}
+
 struct Velocity
 {
     int x;

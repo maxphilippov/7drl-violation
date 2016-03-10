@@ -8,14 +8,18 @@
 #ifndef dialog_h
 #define dialog_h
 
-#include <map>
 #include <string>
+#include <sstream>
+#include <vector>
+
+#include "time.hpp"
 
 struct DialogNode
 {
-    typedef std::map<std::string, DialogNode> Replies;
+    typedef std::vector<std::pair<std::string, DialogNode>> Replies;
     std::string message;
     Replies replies;
+    std::function<void()> action;
 };
 
 // Constant declarations
@@ -23,11 +27,42 @@ auto police_officer_interaction()
 {
     auto root = DialogNode {
         "Ma'am, can I check your id, please?",
-        DialogNode::Replies {
+        {
             {
-                "Cooperate", DialogNode {
-                    "Thank you, this might take a moment", DialogNode::Replies {}
-                }
+                "Cooperate", {
+                    "Thank you, this might take a moment", {}, {}
+                },
+            },
+            {
+                "Refuse", {
+                    "Ma'am, you're acting very suspicious", {}, {}
+                },
+            }
+        }, {}
+    };
+
+    return root;
+}
+
+auto phone_user_interface(int turn_counter)
+{
+    std::ostringstream ss;
+
+    ss << turns_to_hours(turn_counter) << " hours passed";
+
+    auto root = DialogNode {
+        ss.str(), {
+            {
+                "Order tickets", {}
+            },
+            {
+                "Call police", {}
+            },
+            {
+                "Travel", {}
+            },
+            {
+                "Quit", {}
             }
         }
     };

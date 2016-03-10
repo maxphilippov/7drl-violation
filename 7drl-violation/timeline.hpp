@@ -10,20 +10,9 @@
 
 #include <queue>
 
+#include "time.hpp"
 #include "id.hpp"
 #include "interactions.hpp"
-
-const unsigned int turns_in_hour = 12;
-
-class Hours
-{
-    float h;
-public:
-    Hours(float h) : h(h) {}
-    // I'd like to make it return a Turns type, but
-    // has to overload all operators, so it's int for the moment
-    operator int() { return static_cast<int>(h * turns_in_hour); }
-};
 
 struct PurchaseCheck
 {
@@ -36,14 +25,18 @@ struct PurchaseCheck
 struct IDCheck
 {
     IDData data;
+    Position pos;
+    int finish_by_turn;
 };
 
 class Timeline
 {
+    static const Hours purchase_check_default_time;
+    static const Hours id_check_default_time;
+
     int turn_counter;
     std::queue<PurchaseCheck> purchases_checks;
     std::queue<IDCheck> ID_checks;
-    // TODO: Add job pool
 public:
     Timeline()
     {
@@ -65,7 +58,10 @@ public:
         return turn_counter += 1;
     }
     
-    void add_purchase_check(IDData id, Position pos, int price, Hours time_to_finish)
+    void add_purchase_check(IDData id,
+                            Position pos,
+                            int price,
+                            Hours time_to_finish = purchase_check_default_time)
     {
         // We copy IDData here, cause
         // check is made against the balance you had after purchase
@@ -78,6 +74,19 @@ public:
         };
         
         purchases_checks.push(c);
+    }
+
+    void add_id_check(IDData id,
+                      Position pos,
+                      Hours time_to_finish = id_check_default_time)
+    {
+        auto c = IDCheck {
+            id,
+            pos,
+            turn_counter + static_cast<int>(time_to_finish)
+        };
+
+        ID_checks.push(c);
     }
     
     void update(InteractionQueue& interactions)
@@ -95,8 +104,20 @@ public:
                 job = purchases_checks.front();
             }
         }
+        if (ID_checks.size() > 0) {
+            auto job = ID_checks.front();
+            while(job.finish_by_turn == turn_counter) {
+                ID_checks.pop();
+                // FIXME: Check police records
+                job = ID_checks.front();
+            }
+        }
         next_turn();
     }
 };
+
+const auto Timeline::purchase_check_default_time = Hours { 1.5f };
+
+const auto Timeline::id_check_default_time = Hours { 12.0f };
 
 #endif /* timeline_h */

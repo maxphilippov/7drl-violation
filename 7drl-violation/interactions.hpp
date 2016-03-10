@@ -75,7 +75,7 @@ public:
     {
         for(auto const& t: travels)
         {
-            std::stringstream ss;
+            std::ostringstream ss;
             ss << "Traveled to district #" << t.destination_id;
             message_log.push_back(ss.str());
         }

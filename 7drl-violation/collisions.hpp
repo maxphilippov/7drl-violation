@@ -22,29 +22,91 @@ std::unordered_set<MapTile> unpassable_tiles = {
     MapTile::Wall
 };
 
-class CollisionManager
+struct PhysicalData
 {
+    typedef unsigned int id_type;
     std::vector<Position> positions;
     std::vector<Velocity> velocities;
+    std::vector<id_type> ids;
 
-    int last_id;
-    std::vector<int> object_ids;
-public:
-    typedef std::vector<Position>::size_type id_type;
+    id_type next_id;
 
-    CollisionManager() :
-    last_id(0)
+    auto add_object(Position pos, Velocity vel)
     {
-        object_ids.reserve(256);
-        positions.reserve(64);
-        velocities.reserve(64);
+        auto id = next_id;
+
+        ids.push_back(id);
+        positions.push_back(pos);
+        velocities.push_back(vel);
+
+        next_id += 1;
+
+        return id;
     }
 
-    // Returns player position, temporary?
-    void update(Bounds const& simulation_bound, // Point of interest for us, maybe chagne to bounds?
+    auto get_position(id_type id) const
+    {
+        auto it = std::find(std::cbegin(ids),
+                            std::cend(ids),
+                            id);
+
+        auto r = std::pair<bool, Position>{ false, Position{} };
+        if (it != std::cend(ids)) {
+            auto idx = it - std::cbegin(ids);
+            auto pos_it = std::cbegin(positions) + idx;
+            r.first = true;
+            r.second = *pos_it;
+
+        }
+        return r;
+    }
+
+    auto change_velocity(id_type id, Velocity vel)
+    {
+        auto it = std::find(std::cbegin(ids),
+                            std::cend(ids),
+                            id);
+
+        if (it != std::cend(ids)) {
+            auto idx = it - std::cbegin(ids);
+
+            velocities.at(idx) = vel;
+        }
+
+        return it != std::cend(ids);
+    }
+
+    void remove_object(id_type id)
+    {
+        auto it = std::find(std::cbegin(ids),
+                            std::cend(ids),
+                            id);
+
+        if(it != std::cend(ids)) {
+            auto idx = it - std::cbegin(ids);
+            positions.erase(std::begin(positions) + idx);
+            velocities.erase(std::begin(velocities) + idx);
+            ids.erase(it);
+        }
+    }
+};
+
+class CollisionManager
+{
+    PhysicalData all_data;
+public:
+
+    CollisionManager()
+    {
+    }
+
+    void update(Bounds const& simulation_bounds,
                 CityManager const& city,
                 InteractionQueue& interactions)
     {
+        auto& velocities = all_data.velocities;
+        auto& positions = all_data.positions;
+
         auto level_bounds = city.bounds();
         // Update all entities positions (actually should update just nearest to the player)
         auto new_positions = std::vector<Position>(positions.size());
@@ -144,40 +206,34 @@ public:
         }
     }
 
-    void drop_object(id_type id)
-    {
-    }
-
     // Return false if there's no such object registered for collisions
     // which means we disposed it already
-    bool change_velocity(id_type id, Velocity vel)
+    bool change_velocity(PhysicalData::id_type id, Velocity vel)
     {
-        velocities.at(id) = vel;
-        return true;
+        return all_data.change_velocity(id, vel);
     }
 
-    Position const& get_position(id_type id) const
+    auto get_position(PhysicalData::id_type id)
     {
-        return positions.at(id);
+        return all_data.get_position(id);
     }
 
-    void teleport(id_type id, Position pos)
+    void teleport(PhysicalData::id_type id, Position pos)
     {
-        positions.at(id) = pos;
+//        positions.at(id) = pos;
     }
 
     auto add_moving_entity(Position pos, Velocity vel = Velocity{0, 0})
     {
-        auto id = positions.size();
-
-        positions.push_back(pos);
-        velocities.push_back(vel);
+        auto id = all_data.add_object(pos, vel);
 
         return id;
     }
 
     auto get_in_range(Position const& player, MapSize const& half_screen) const
     {
+        auto& positions = all_data.positions;
+
         auto bounds = Bounds{
             player.x - half_screen.width,
             player.y - half_screen.height,

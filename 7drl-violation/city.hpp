@@ -8,74 +8,32 @@
 #ifndef city_h
 #define city_h
 
-#include <array>
 #include <algorithm>
 #include <chrono>
 #include <iterator>
 #include <vector>
+#include <unordered_map>
 
+
+#include "district.hpp"
 #include "map.hpp"
 #include "position.hpp"
 
 #include "generator.hpp"
 
-struct DistrictData
-{
-    int id;
-    
-    int population;
-    int crime_level;
-    int law_power;
-    
-    int points_of_interest_count;
-    
-    int private_satelites_count;
-};
-
-class District
-{
-    DistrictData data;
-    
-    std::array<int, 3> places_count;
-    
-    std::vector<Position> shops;
-    std::vector<Position> clinics;
-    std::vector<Position> bars;
-public:
-    // TODO: Pass data as parameter?
-    District(int id, int pop, int crime_level, int law_power, int points_of_interest, int private_satelites) :
-    data{id, pop, crime_level, law_power, points_of_interest, private_satelites}
-    {
-        std::random_device rd;
-        auto gen = std::mt19937(rd());
-        // Chance to generate shop / clinic / bar
-        auto d = std::discrete_distribution<>({35, 10, 15});
-        
-        // Now how do we turn that into separate arrays?
-        for(auto i = 0; i < points_of_interest; ++i) {
-            ++places_count[d(gen)];
-        }
-    }
-    
-    DistrictData const& get_data() const
-    {
-        return data;
-    }
-};
-
 class CityManager
 {
     int district_count;
-    
+
     std::vector<District> used_districts;
-    
-    std::vector<Position> district_placement;
-    
+
+    std::unordered_multimap<int, int> district_paths;
+
     MapSize size;
-    
+
     // Current district map
     MapCells district_map;
-    
+
     void add_district()
     {
         auto distr = District{
@@ -89,7 +47,7 @@ class CityManager
         used_districts.push_back(distr);
         district_count -= 1;
     }
-    
+
     void thrash_district(int id)
     {
         auto d = std::find_if(std::begin(used_districts),
@@ -100,49 +58,62 @@ class CityManager
             district_count += 1;
         }
     }
+
+    void generate_districts()
+    {
+    }
 public:
-    CityManager() :
+    CityManager(MapSize size) :
     district_count(5),
-    size{ 512, 512 },
+    size{ size },
     district_map(generate(std::chrono::system_clock::now().time_since_epoch().count(), size))
-//    district_map(size.width * size.height)
     {
         used_districts.reserve(district_count);
     }
-    
+
     const auto& bounds() const
     {
         return size;
     }
-    
+
     const auto& map() const
     {
         return district_map;
     }
-    
+
     const auto get(Position const& pos) const
     {
         auto idx = get_map_position(district_map, size, pos);
         return district_map[idx];
     }
-    
+
     const auto get(int x, int y) const
     {
         return get(Position{ x, y });
     }
-    
+
     const auto get_neighbour_districts(int id)
     {
         auto n = std::vector<int>();
-        
-        for(auto const& pos: district_placement) {
-            
-        }
     }
-    
-    void update(Position const& player, int turn_counter)
+
+    Position change_district(int id)
     {
-        
+        district_map = generate(std::chrono::system_clock::now().time_since_epoch().count(), size);
+        const auto player = Position {};
+
+        return player;
+    }
+
+    void update(Bounds const& simulation_bound, MapCells const& crowds_map, int turn_counter)
+    {
+        std::transform(std::begin(district_map),
+                       std::end(district_map),
+                       std::begin(crowds_map),
+                       std::begin(district_map),
+                       [](auto c, auto v) {
+                           return v != MapTile::Empty ? v : c;
+                       });
     }
 };
 

@@ -30,38 +30,84 @@ public:
 
 bool confirmation_screen(MapSize const& screen, std::string const& message)
 {
-    auto b = Bounds{ 0, 0, screen.width, screen.height };
-    auto w = WindowHandler{b};
-    mvwprintw(w.raw(), 0, 3, message.c_str());
-    mvwprintw(w.raw(), 2, 3, "`y` to confirm, any key to cancel");
+    const auto b = Bounds{ 0, 0, screen.width, screen.height };
+    const auto w = WindowHandler{b};
+    const auto x_offset = 3;
+    const auto y_offset = 6;
+    mvwprintw(w.raw(), y_offset, x_offset, message.c_str());
+    mvwprintw(w.raw(), y_offset + 2, x_offset, "`y` to confirm, any key to cancel");
 
     auto input = wgetch(w.raw());
 
     return input == 'y';
 }
 
-void print_node(WINDOW * w, DialogNode const& d)
+auto dialog_controls = std::unordered_set<int> {
+    'j', 'k', ' '
+};
+
+void print_node(WINDOW * w, DialogNode const& d, int selected_node = 0)
 {
     auto y_pos = 2;
-    auto x_pos = 2;
+    const auto x_pos = 2;
+    wclear(w);
     mvwprintw(w, y_pos, x_pos, d.message.c_str());
 
-    for(auto& r: d.replies) {
+    auto idx = 0;
+
+    auto replies_count = d.replies.size();
+
+    for(auto const& r: d.replies) {
+        if (idx == selected_node ) wattron(w, A_REVERSE);
         y_pos += 2;
         mvwprintw(w, y_pos, x_pos + 1, r.first.c_str());
+        if (idx == selected_node ) wattroff(w, A_REVERSE);
+        ++idx;
     }
 
-    auto choice = wgetch(w);
+    mvwprintw(w,
+              10, x_pos,
+              (replies_count != 0) ?
+              "j, k - pick line, <spacebar> - confirm" :
+              "<Press any key to continue>");
 
-    if (!d.replies.empty()) {
-        // process choice
+    const auto choice = wgetch(w);
+
+    switch(choice) {
+        case 'j':
+            if (replies_count != 0) {
+            selected_node += 1;
+            if (selected_node >= d.replies.size()) {
+                selected_node = 0;
+            }
+            }
+            print_node(w, d, selected_node);
+            break;
+        case 'k':
+                if (replies_count != 0) {
+                    selected_node -= 1;
+                    if (selected_node < 0) {
+                        selected_node = replies_count - 1;
+                    }
+                }
+            print_node(w, d, selected_node);
+            break;
+        case ' ':
+            if (replies_count != 0) {
+                auto next_node = d.replies.at(selected_node);
+                print_node(w, next_node.second);
+            }
+            break;
+        default:
+            print_node(w, d, selected_node);
+            break;
     }
 }
 
 void render_dialog(MapSize const& screen, DialogNode const& root)
 {
-    auto b = Bounds { 0, screen.height, screen.width, screen.height };
-    auto w = WindowHandler {b};
+    const auto b = Bounds { 0, screen.height, screen.width, screen.height };
+    const auto w = WindowHandler {b};
 
     print_node(w.raw(), root);
 }

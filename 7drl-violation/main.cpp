@@ -6,6 +6,7 @@
 //
 
 #include <algorithm>
+#include <chrono>
 #include <sstream>
 #include <vector>
 #include <unordered_set>
@@ -14,6 +15,7 @@
 
 #include <ncurses.h>
 
+#include "crowds.hpp"
 #include "symbols.hpp"
 #include "map.hpp"
 #include "city.hpp"
@@ -23,6 +25,8 @@
 #include "police.hpp"
 #include "position.hpp"
 #include "timeline.hpp"
+
+#include "player_commands.hpp"
 
 const std::unordered_set<char> actions = {
     'h', 'j', 'k', 'l', // Movement
@@ -34,7 +38,7 @@ const std::unordered_set<char> exit_buttons = {
 };
 
 std::string build_help_message() {
-    auto ss = std::stringstream();
+    auto ss = std::ostringstream();
 
     ss << "\nGeneral:\n\t" << "q - exit\n\t" << "? - help\n";
     ss << "\nMovement:\n\t" << "h - left\n\t" << "l - right\n\t" << "j - down\n\t" << "k - top\n" << "spacebar - skip turn\n";
@@ -66,9 +70,10 @@ private:
     const MapSize half_size;
 
     // TODO: Make a separate manager for player input
-    unsigned long player_id;
+    PhysicalData::id_type player_id;
 
     CityManager city;
+    CrowdManager crowds;
     // Processes movement
     CollisionManager collisions;
     // Processes over time events, maintains turn counter
@@ -79,12 +84,16 @@ private:
     PoliceManager police;
     InventoryManager items;
 
+    PlayerInput input_manager;
+
     std::vector<std::string> message_log;
 public:
     Game(int width, int height) :
     screen_size{ width, height },
     half_size{ width / 2, height / 2 },
-    player_id{ 0 }
+    player_id{ 0 },
+    city{ MapSize { 512, 512 } },
+    crowds{ city.bounds() }
     {
         initscr();
         noecho();
@@ -111,6 +120,8 @@ public:
 
     void run()
     {
+        interactions.add_dialog();
+
         auto player_pos = Position{ 0, 0 };
 
         player_id = collisions.add_moving_entity(player_pos);
@@ -131,6 +142,7 @@ private:
         auto player = init_pos;
         auto input = '\0';
         while(true) {
+            auto start = std::chrono::high_resolution_clock::now();
             if (exit_buttons.count(input) > 0) {
                 // FIXME:
                 //                auto exit = confirmation_screen(screen_size, "Are you sure you want to exit?");
@@ -144,9 +156,9 @@ private:
 
             auto level_bounds = city.bounds();
 
-            if (actions.count(input) != 0) {
+            auto turn_counter = time.current_turn();
 
-                auto turn_counter = time.current_turn();
+            if (actions.count(input) != 0) {
 
                 auto player_interest = Bounds {
                     player.x - screen_size.width, player.y - screen_size.width,
@@ -163,13 +175,18 @@ private:
                 // Produce velocity for movement orders
                 police.update(player_interest, collisions, turn_counter);
 
-                city.update(player, turn_counter);
+                crowds.update(player_interest, city.map(), turn_counter);
+
+                auto crowd_map = crowds.map();
+
+                city.update(player_interest, crowd_map, turn_counter);
 
                 // Produce interactions list, should be sorted by priority
                 // Like a message from PO is more important than your interaction with civilians
                 collisions.update(player_interest, city, interactions);
 
-                player = collisions.get_position(player_id);
+                // TODO: Should probably throw if we can't find a player
+                player = collisions.get_position(player_id).second;
 
                 // Adds interaction for completed jobs and probably creates something
                 // like CityChange with data on what to change in city before next turn
@@ -182,10 +199,19 @@ private:
                         break;
                         // FIXME: Testing
                     case 't':
-                        travel();
+                        use_phone(turn_counter);
                         break;
                     case 'p':
-                        purchase(player);
+                    {
+                        auto r = confirmation_screen(screen_size, "You sure you want to purchase some stuff?");
+                        if (r) {
+                            auto balance = input_manager.purchase_charge(time, items, player, 3000);
+
+                            std::ostringstream ss;
+                            ss << "Your balance is: " << balance;
+                            message_log.push_back(ss.str());
+                        }
+                    }
                         break;
                 }
             }
@@ -198,6 +224,8 @@ private:
 
             refresh();
 
+            auto elapsed = std::chrono::high_resolution_clock::now() - start;
+
             // we can store int rewind_to_turn here and ask for input
             // only if(rewind_to_turn == time.current_turn())
             // --rewind_to_turn
@@ -205,18 +233,10 @@ private:
         }
     }
 
-    void purchase(Position const& player)
+    void use_phone(int turn_counter)
     {
-        auto r = confirmation_screen(screen_size, "You sure you want to purchase some stuff?");
-        if (r) {
-            auto id = items.get_id();
-            auto cost = 3000;
-            auto balance = items.pay(cost);
-            time.add_purchase_check(id, player, cost, Hours(1.5f));
-            std::stringstream ss;
-            ss << "Your balance is: " << balance;
-            message_log.push_back(ss.str());
-        }
+        auto dialog = phone_user_interface(turn_counter);
+        render_dialog(screen_size, dialog);
     }
 
     // TODO: Don't know where to put that, looks like an input manager
@@ -279,7 +299,7 @@ private:
     {
         if (message_log.size() > 0) {
             int y_offset = 2;
-            auto end = std::rend(message_log);
+            auto end = std::crend(message_log);
             for(auto it = std::rbegin(message_log); it != end; ++it) {
                 mvprintw(screen_size.height + y_offset, 3, it->c_str());
                 y_offset += 1;

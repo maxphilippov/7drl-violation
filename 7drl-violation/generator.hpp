@@ -110,12 +110,12 @@ public:
     }
 };
 
-MapCells& paintBounds(MapCells& cells,
-                      Bounds const& mapSize,
-                      std::vector<Bounds> const& paintInside,
-                      MapTile value,
-                      MapTile borderValue
-                      )
+auto& fill_bounds(MapCells& cells,
+                  Bounds const& mapSize,
+                  std::vector<Bounds> const& paintInside,
+                  MapTile value,
+                  MapTile borderValue
+                  )
 {
     auto mapWidth = mapSize.maxx - mapSize.minx;
 
@@ -137,7 +137,50 @@ MapCells& paintBounds(MapCells& cells,
     return cells;
 }
 
-MapCells generate(int seed, MapSize const& size) {
+struct Building
+{
+    // TODO: add building purpose
+    std::vector<Position> doors;
+    Bounds bounds;
+};
+
+auto& fill_buildings(MapCells& cells,
+                     Bounds const& mapSize,
+                     std::vector<Building> const& buildings,
+                     MapTile value)
+{
+    auto mapWidth = mapSize.maxx - mapSize.minx;
+    for(auto const& b: buildings) {
+        auto bounds = b.bounds.shrink(1);
+        auto minx = std::max(mapSize.minx, bounds.minx);
+        auto miny = std::max(mapSize.miny, bounds.miny);
+        auto maxx = std::min(mapSize.maxx, bounds.maxx);
+        auto maxy = std::min(mapSize.maxy, bounds.maxy);
+
+        auto b_doors = std::cbegin(b.doors);
+        auto e_doors = std::cend(b.doors);
+
+        for(auto j = miny; j < maxy; ++j) {
+            for(auto i = minx; i < maxx; ++i) {
+                auto it = std::find_if(b_doors,
+                                       e_doors,
+                                       [i, j](auto const& p ) {
+                                           return p.x != i && p.y != i;
+                                       }
+                                       );
+                auto pos = i + j * mapWidth;
+                cells.at(pos) = ((j != miny && i != minx &&
+                                  j != maxy - 1 && i != maxx -1) ||
+                                 it != e_doors)
+                ? value : MapTile::Wall;
+            }
+        }
+    }
+
+    return cells;
+}
+
+auto generate(int seed, MapSize const& size) {
     auto level_bounds = Bounds{ 0, 0, size.width, size.height };
 
     auto r = MapCells(size.width * size.height, MapTile::Road);
@@ -155,20 +198,19 @@ MapCells generate(int seed, MapSize const& size) {
                   [](auto& b) { b = b.shrink(2); }
                   );
 
-    paintBounds(r, level_bounds, all_bounds, MapTile::Empty, MapTile::Empty);
+    fill_bounds(r, level_bounds, all_bounds, MapTile::Empty, MapTile::Empty);
 
     // FIXME: It's terrible, but I'm trying to reuse CityBlock for building
     // generation
     std::for_each(std::begin(all_bounds),
                   std::end(all_bounds),
                   [&r, seed, &level_bounds](auto const& b) {
-                          auto block = CityBlock{ b };
-                          block.divide(seed, MapSize{ 8, 8 }, 2);
-                          auto bounds = block.all_bounds();
-                          paintBounds(r, level_bounds, bounds, MapTile::Empty, MapTile::Wall);
-                      
+                      auto block = CityBlock{ b };
+                      block.divide(seed, MapSize{ 8, 8 }, 2);
+                      auto bounds = block.all_bounds();
+                      fill_bounds(r, level_bounds, bounds, MapTile::Empty, MapTile::Wall);
                   });
-
+    
     return r;
 }
 

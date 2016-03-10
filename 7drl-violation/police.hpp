@@ -20,7 +20,7 @@
 
 struct ActivatedPO
 {
-    CollisionManager::id_type collision_id;
+    PhysicalData::id_type collision_id;
 };
 
 struct PatrolMission
@@ -46,13 +46,13 @@ class PoliceManager
     // out of this map is performed only when a PO checks your ID
     std::map<id_name, CriminalRecord> criminal_records;
 
-    std::vector<CollisionManager::id_type> cops_on_the_street;
+    std::vector<PhysicalData::id_type> cops_on_the_street;
 
     std::vector<PatrolMission> on_patrol_mission;
 
     std::vector<WorldPosition> points_of_interest;
 public:
-    void update(Bounds const& simulation_bound,
+    void update(Bounds const& simulation_bounds,
                 CollisionManager& collisions,
                 int turn_count)
     {
@@ -62,17 +62,17 @@ public:
 
         if (turn_count % spawn_interval == 0) {
             srand(static_cast<unsigned int>(time(0) * turn_count));
-            auto w = simulation_bound.maxx - simulation_bound.minx;
-            auto h = simulation_bound.maxy - simulation_bound.miny;
+            const auto w = simulation_bounds.maxx - simulation_bounds.minx;
+            const auto h = simulation_bounds.maxy - simulation_bounds.miny;
             // spawn new PO near some point of interest
             // FIXME: don't spawn in player vision range
-            auto x = simulation_bound.minx + rand() % w;
-            auto y = simulation_bound.miny + rand() % h;
-            auto pos = Position{ x, y };
+            const auto x = simulation_bounds.minx + rand() % w;
+            const auto y = simulation_bounds.miny + rand() % h;
+            const auto pos = Position{ x, y };
 
-            auto missionTarget = Position { x + 5, y + 5 };
-            auto id = collisions.add_moving_entity(pos);
-            auto mission = PatrolMission{
+            const auto missionTarget = Position { x + 5, y + 5 };
+            const auto id = collisions.add_moving_entity(pos);
+            const auto mission = PatrolMission{
                 static_cast<unsigned int>(id),
                 missionTarget
             };
@@ -82,10 +82,10 @@ public:
 
         auto random_velocities = std::vector<Velocity>(cops_on_the_street.size());
 
-        for(auto i: cops_on_the_street) {
+        for(auto const i: cops_on_the_street) {
             // FIXME: proper generation
             srand(i * turn_count);
-            auto v = Velocity{rand() % 3 - 1, rand() % 3 - 1};
+            const auto v = Velocity{rand() % 3 - 1, rand() % 3 - 1};
             collisions.change_velocity(i, v);
         }
     }
