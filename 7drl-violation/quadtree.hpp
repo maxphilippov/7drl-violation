@@ -2,166 +2,153 @@
 //  quadtree.hpp
 //  7drl-violation
 //
+//  Stolen on the web, modified
+//
 //  Copyright © 2016 Max Philippov
 //
 
 #ifndef quadtree_h
 #define quadtree_h
 
-#include <memory
+#include <memory>
 #include <vector>
 
 #include "position.hpp"
 
-template <typename T>
-struct Data
+namespace quadtree
 {
-    Position pos;
-    T* load;
-
-    Data(Position pos = Position(), T* data = nullptr): pos(pos), load(data){};
-};
-
-
-template <class T>
-class Quadtree
-{
-private:
-    //4 children
-    std::unique_ptr<Quadtree> nw;
-    std::unique_ptr<Quadtree> ne;
-    std::unique_ptr<Quadtree> sw;
-    std::unique_ptr<Quadtree> se;
-
-    Bounds boundary;
-
-    std::vector< Data<T> > objects;
-
-    int CAPACITY;
-public:
-    Quadtree<T>();
-    Quadtree<T>(Bounds boundary);
-
-    ~Quadtree();
-
-    bool insert(Data<T> d);
-    void subdivide();
-    std::vector< Data<T> > queryRange(Bounds range);
-};
-
-template <class T>
-Quadtree<T>::Quadtree() :
-nw(nullptr),
-ne(nullptr),
-sw(nullptr),
-se(nullptr)
-{
-    CAPACITY = 4;
-}
-
-template <class T>
-Quadtree<T>::Quadtree(Bounds boundary)
-nw(nullptr),
-ne(nullptr),
-sw(nullptr),
-se(nullptr),
-boundary(boundary)
-{
-    CAPACITY = 4;
-}
-
-template <class T>
-void Quadtree<T>::subdivide()
-{
-    Position qSize = Position(boundary.halfSize.x, boundary.halfSize.y);
-    Position qCentre = Position(boundary.centre.x - qSize.x, boundary.centre.y - qSize.y);
-    nw = new Quadtree(Bounds(qCentre, qSize));
-
-    qCentre = Position(boundary.centre.x + qSize.x, boundary.centre.y - qSize.y);
-    ne = new Quadtree(Bounds(qCentre, qSize));
-
-    qCentre = Position(boundary.centre.x - qSize.x, boundary.centre.y + qSize.y);
-    sw = new Quadtree(Bounds(qCentre, qSize));
-
-    qCentre = Position(boundary.centre.x + qSize.x, boundary.centre.y + qSize.y);
-    se = new Quadtree(Bounds(qCentre, qSize));
-}
-
-template <class T>
-bool Quadtree<T>::insert(Data<T> d)
-{
-    if(!boundary.contains(d.pos))
+    template <typename T>
+    struct Data
     {
-        return false;
-    }
+        Position pos;
+        std::unique_ptr<T> load;
 
-    if(objects.size() < CAPACITY)
-    {
-        objects.push_back(d);
-        return true;
-    }
+        Data(Position pos = Position(), std::unique_ptr<T> data = nullptr):
+        pos(pos), load(data) {};
+    };
 
-    if(nw == nullptr)
+    template <class T>
+    class Quadtree
     {
-        subdivide();
-    }
+    private:
+        // Maybe replace with array
+        std::unique_ptr<Quadtree> nw;
+        std::unique_ptr<Quadtree> ne;
+        std::unique_ptr<Quadtree> sw;
+        std::unique_ptr<Quadtree> se;
 
-    if(nw->insert(d))
-    {
-        return true;
-    }
-    if(ne->insert(d))
-    {
-        return true;
-    }
-    if(sw->insert(d))
-    {
-        return true;
-    }
-    if(se->insert(d))
-    {
-        return true;
-    }
+        Bounds bounds;
 
-    return false;
-}
+        std::vector< Data<T> > objects;
 
-template <class T>
-std::vector< Data<T> > Quadtree<T>::queryRange(Bounds range)
-{
-    std::vector< Data<T> > pInRange = std::vector< Data<T> >();
+        unsigned int capacity;
+    public:
+        Quadtree(Bounds bounds, unsigned int capacity = 4) :
+        nw(nullptr),
+        ne(nullptr),
+        sw(nullptr),
+        se(nullptr),
+        bounds(bounds),
+        capacity(capacity) {}
 
-    if(!boundary.intersects(range))
-    {
-        return pInRange;
-    }
-
-    for(int i = 0; i < objects.size(); i++)
-    {
-        if(range.contains(objects.at(i).pos))
+        auto subdivide()
         {
-            pInRange.push_back(objects.at(i));
+            auto minx = bounds.minx;
+            auto maxx = bounds.maxx;
+            auto miny = bounds.miny;
+            auto maxy = bounds.maxy;
+            auto midx = (bounds.maxx - bounds.minx) / 2 + bounds.minx;
+            auto midy = (bounds.maxy - bounds.miny) / 2 + bounds.miny;
+
+            auto nw_bounds = Bounds{ minx, miny, midx, midy };
+            nw = std::make_unique<Quadtree>(nw_bounds);
+
+            auto ne_bounds = Bounds{ midx, miny, maxx, midy };
+            ne = std::make_unique<Quadtree>(ne_bounds);
+
+            auto sw_bounds = Bounds{ minx, midy, midx, maxy };
+            sw = std::make_unique<Quadtree>(sw_bounds);
+
+            auto se_bounds = Bounds{ midx, midy, maxx, maxy };
+            se = std::make_unique<Quadtree>(se_bounds);
         }
-    }
 
-    if(nw == nullptr)
-    {
-        return pInRange;
-    }
+        auto insert(Data<T> d)
+        {
+            if (!bounds.contains(d.pos))
+            {
+                return false;
+            }
 
-    std::vector< Data<T> > temp = nw->queryRange(range);
-    pInRange.insert(pInRange.end(), temp.begin(), temp.end());
+            if (objects.size() < capacity)
+            {
+                objects.push_back(d);
+                return true;
+            }
 
-    temp = ne->queryRange(range);
-    pInRange.insert(pInRange.end(), temp.begin(), temp.end());
+            if (nw == nullptr)
+            {
+                subdivide();
+            }
 
-    temp = sw->queryRange(range);
-    pInRange.insert(pInRange.end(), temp.begin(), temp.end());
+            if (nw->insert(d))
+            {
+                return true;
+            }
+            if (ne->insert(d))
+            {
+                return true;
+            }
+            if (sw->insert(d))
+            {
+                return true;
+            }
+            if (se->insert(d))
+            {
+                return true;
+            }
 
-    temp = se->queryRange(range);
-    pInRange.insert(pInRange.end(), temp.begin(), temp.end());
+            return false;
+        }
 
-    return pInRange;
+        auto query_range(Bounds range) const
+        {
+            auto in_range = std::vector<Data<T>>();
+
+            if (!bounds.intersects(range))
+            {
+                return in_range;
+            }
+
+            auto it = std::copy_if(std::begin(objects),
+                                   std::end(objects),
+                                   std::begin(in_range),
+                                   [&range](auto const& o) {
+                                       return range.contains(o.pos);
+                                   });
+
+            in_range.resize(std::distance(std::begin(in_range), it));
+
+            if (nw == nullptr)
+            {
+                return in_range;
+            }
+            
+            std::vector< Data<T> > temp = nw->query_range(range);
+            in_range.insert(in_range.end(), temp.begin(), temp.end());
+            
+            temp = ne->query_range(range);
+            in_range.insert(in_range.end(), temp.begin(), temp.end());
+            
+            temp = sw->query_range(range);
+            in_range.insert(in_range.end(), temp.begin(), temp.end());
+            
+            temp = se->query_range(range);
+            in_range.insert(in_range.end(), temp.begin(), temp.end());
+            
+            return in_range;
+        }
+    };
 }
 
 #endif /* quadtree_h */

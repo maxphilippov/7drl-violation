@@ -26,12 +26,33 @@ struct Bounds
     int minx, miny;
     int maxx, maxy;
     
-    bool inside(Position const& pos) const
+    auto contains(Position const& pos) const
     {
         return pos.x >= minx && pos.y >= miny && pos.x < maxx && pos.y < maxy;
     }
+
+    auto intersects(Bounds const& o) const
+    {
+        // r = half_size
+        // c = center
+        // 1 = this obj, 2 = other object
+        auto r_x_1 = (maxx - minx) / 2;
+        auto c_x_1 = r_x_1 + minx;
+        auto r_y_1 = (maxy - miny) / 2;
+        auto c_y_1 = r_x_1 + miny;
+
+        auto r_x_2 = (o.maxx - o.minx) / 2;
+        auto c_x_2 = r_x_2 + o.minx;
+        auto r_y_2 = (o.maxy - o.miny) / 2;
+        auto c_y_2 = r_x_2 + o.miny;
+
+        auto x = std::abs(c_x_1 - c_x_2) <= (r_x_1 + r_x_2);
+        auto y = std::abs(c_y_1 - c_y_2) <= (r_y_1 + r_y_2);
+
+        return x && y;
+    }
     
-    Bounds shrink(int value) const
+    auto shrink(int value) const
     {
         return Bounds {
             minx + value, miny + value,

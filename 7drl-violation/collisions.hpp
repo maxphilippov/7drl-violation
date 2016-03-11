@@ -18,6 +18,8 @@
 #include "position.hpp"
 #include "city.hpp"
 
+#include "quadtree.hpp"
+
 std::unordered_set<MapTile> unpassable_tiles = {
     MapTile::Wall
 };
@@ -190,7 +192,7 @@ public:
             0, 0, city_size.width, city_size.height
         };
 
-        if (!bounds.inside(pos)) {
+        if (!bounds.contains(pos)) {
             // FIXME: Optional value
             return Position { -1, -1 };
         }
@@ -246,7 +248,7 @@ public:
         auto it = std::copy_if(std::begin(positions),
                                std::end(positions),
                                std::begin(r),
-                               [&bounds](auto const& p) { return bounds.inside(p); } );
+                               [&bounds](auto const& p) { return bounds.contains(p); } );
         
         r.resize(std::distance(std::begin(r), it));
         
