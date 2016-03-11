@@ -105,6 +105,12 @@ public:
     {
         return criminal_records.at(id);
     }
+
+    auto record_crimes(std::vector<PoliceAlert> const& alerts) {
+        for(auto const& a: alerts) {
+            
+        }
+    }
 };
 
 

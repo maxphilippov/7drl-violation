@@ -15,6 +15,7 @@
 #include "dialog.hpp"
 #include "id.hpp"
 #include "interface.hpp"
+#include "map.hpp"
 
 struct TravelData
 {
@@ -33,70 +34,24 @@ struct PoliceAlert
     int violation_level;
 };
 
-class InteractionQueue
+auto run_travels(std::vector<TravelData> const& travels, std::vector<std::string> & message_log)
 {
-    std::vector<TravelData> travels;
-    std::vector<DialogData> dialogs;
-    std::vector<PoliceAlert> police_alerts;
-public:
-    InteractionQueue()
+    for(auto const& t: travels)
     {
-        travels.reserve(5);
-        dialogs.reserve(5);
+        std::ostringstream ss;
+        ss << "Traveled to district #" << t.destination_id;
+        message_log.push_back(ss.str());
     }
-    
-    void add_travel(int destination_id) {
-        auto data = TravelData{
-            destination_id
-        };
-        
-        travels.push_back(data);
-    }
-    
-    // Not like there won't be other dialogs, but gonna use that for POs only right now
-    void add_dialog() {
-        auto data = DialogData {
-            police_officer_interaction()
-        };
-        dialogs.push_back(data);
-    }
+}
 
-    void add_police_alert(IDData id, Position pos, int violation_level)
+auto run_dialogs(MapSize const& screen_size, std::vector<DialogData> const& dialogs)
+{
+
+    for(auto const& d: dialogs)
     {
-        auto a = PoliceAlert {
-            id,
-            pos,
-            violation_level
-        };
-        police_alerts.push_back(a);
+        render_dialog(screen_size, d.root);
     }
-    
-    void run(MapSize const& screen_size, std::vector<std::string>& message_log)
-    {
-        for(auto const& t: travels)
-        {
-            std::ostringstream ss;
-            ss << "Traveled to district #" << t.destination_id;
-            message_log.push_back(ss.str());
-        }
-
-        for(auto const& a: police_alerts) {
-            message_log.push_back("Looks like someone called a police");
-        }
-
-        // Player can escape any interaction if she manages to enter travel point at that turn
-        // except JUSTICE
-        if (travels.empty()) {
-            for(auto const& d: dialogs)
-            {
-                render_dialog(screen_size, d.root);
-            }
-        }
-        police_alerts.clear();
-        travels.clear();
-        dialogs.clear();
-    }
-};
+}
 
 
 #endif /* interactions_h */

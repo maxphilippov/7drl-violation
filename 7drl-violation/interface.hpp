@@ -8,7 +8,7 @@
 #ifndef interface_h
 #define interface_h
 
-#include <ncurses.h>
+#include "curses.hpp"
 
 #include <string>
 

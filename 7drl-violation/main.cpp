@@ -13,7 +13,7 @@
 
 #include <stdlib.h>
 
-#include <ncurses.h>
+#include "curses.hpp"
 
 #include "crowds.hpp"
 #include "symbols.hpp"
@@ -78,8 +78,6 @@ private:
     CollisionManager collisions;
     // Processes over time events, maintains turn counter
     Timeline time;
-    // Processes non-map output to player
-    InteractionQueue interactions;
     // Processes police officer tasks etc.
     PoliceManager police;
     InventoryManager items;
@@ -120,8 +118,6 @@ public:
 
     void run()
     {
-        interactions.add_dialog();
-
         auto player_pos = Position{ 0, 0 };
 
         player_id = collisions.add_moving_entity(player_pos);
@@ -139,6 +135,10 @@ public:
 private:
     void loop(Position const& init_pos)
     {
+        std::vector<PoliceAlert> police_alerts;
+        std::vector<TravelData> travels;
+        std::vector<DialogData> dialogs;
+
         auto player = init_pos;
         auto input = '\0';
         while(true) {
@@ -183,14 +183,14 @@ private:
 
                 // Produce interactions list, should be sorted by priority
                 // Like a message from PO is more important than your interaction with civilians
-                collisions.update(player_interest, city, interactions);
+                collisions.update(player_interest, city, dialogs);
 
                 // TODO: Should probably throw if we can't find a player
                 player = collisions.get_position(player_id).second;
 
                 // Adds interaction for completed jobs and probably creates something
                 // like CityChange with data on what to change in city before next turn
-                time.update(interactions);
+                time.update(police_alerts);
 
             } else {
                 switch(input) {
@@ -220,9 +220,19 @@ private:
 
             render_log(message_log);
 
-            interactions.run(screen_size, message_log);
+            police.record_crimes(police_alerts);
+
+            run_travels(travels, message_log);
+
+            if (travels.empty()) {
+                run_dialogs(screen_size, dialogs);
+            }
 
             refresh();
+
+            dialogs.clear();
+            travels.clear();
+            police_alerts.clear();
 
             auto elapsed = std::chrono::high_resolution_clock::now() - start;
 
@@ -238,15 +248,14 @@ private:
         auto dialog = phone_user_interface(turn_counter);
         render_dialog(screen_size, dialog);
     }
-
-    // TODO: Don't know where to put that, looks like an input manager
+    
     void travel(int id = 0)
     {
         auto response = confirmation_screen(screen_size, "Do you want to travel to x?");
 
         if (response) {
             // FIXME: temp id
-            interactions.add_travel(id);
+//            interactions.add_travel(id);
         } else {
             message_log.push_back("Travel canceled");
         }

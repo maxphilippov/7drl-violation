@@ -89,17 +89,18 @@ public:
         ID_checks.push(c);
     }
     
-    void update(InteractionQueue& interactions)
+    void update(std::vector<PoliceAlert> & police_alerts)
     {
         if (purchases_checks.size() > 0) {
             auto job = purchases_checks.front();
             while(job.finish_by_turn == turn_counter) {
                 purchases_checks.pop();
                 if (job.data.balance - job.price < 0) {
-                    interactions.add_police_alert(
-                        //FIXME: Violation level
-                        job.data, job.pos, 1
-                    );
+                    // FIXME: push to police_alerts
+//                    interactions.add_police_alert(
+//                        //FIXME: Violation level
+//                        job.data, job.pos, 1
+//                    );
                 }
                 job = purchases_checks.front();
             }
@@ -116,8 +117,7 @@ public:
     }
 };
 
-const auto Timeline::purchase_check_default_time = Hours { 1.5f };
-
-const auto Timeline::id_check_default_time = Hours { 12.0f };
+const Hours Timeline::purchase_check_default_time = Hours { 1.5f };
+const Hours Timeline::id_check_default_time = Hours { 12.0f };
 
 #endif /* timeline_h */

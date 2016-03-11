@@ -102,7 +102,7 @@ public:
 
     void update(Bounds const& simulation_bounds,
                 CityManager const& city,
-                InteractionQueue& interactions)
+                std::vector<DialogData>& dialogs)
     {
         auto& velocities = all_data.velocities;
         auto& positions = all_data.positions;
