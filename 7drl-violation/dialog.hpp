@@ -11,17 +11,10 @@
 #include <string>
 #include <sstream>
 #include <vector>
-#include <functional>
 
+#include "interaction_types.hpp"
+#include "player_commands.hpp"
 #include "time.hpp"
-
-struct DialogNode
-{
-    typedef std::vector<std::pair<std::string, DialogNode>> Replies;
-    std::string message;
-    Replies replies;
-    std::function<void()> action;
-};
 
 // Constant declarations
 auto police_officer_interaction()
@@ -45,7 +38,7 @@ auto police_officer_interaction()
     return root;
 }
 
-auto phone_user_interface(int turn_counter)
+auto phone_user_interface(WorldPosition const& location, int turn_counter, PlayerInput & input)
 {
     std::ostringstream ss;
 
@@ -54,18 +47,35 @@ auto phone_user_interface(int turn_counter)
     auto root = DialogNode {
         ss.str(), {
             {
-                "Order tickets", {}
+                "Order tickets", {
+                    "Ordering tickets",
+                    {},
+                    [&input, &location]() { input.pay_for_something(location, 3000); }
+                }
             },
             {
                 "Call police", {}
             },
             {
-                "Travel", {}
+                "Travel", {
+                    "Initializing superflight feature",
+                    {},
+                    [&input, &location]() { input.travel(1); }
+                }
             },
             {
                 "Quit", {}
             }
         }
+    };
+
+    return root;
+}
+
+auto intro_dialog()
+{
+    auto root = DialogNode {
+        "Your master is dead, the blood is on your hands\nHurry up, they are looking for a female android", {}
     };
 
     return root;

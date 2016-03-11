@@ -17,7 +17,7 @@ struct Position
 struct WorldPosition
 {
     int district_id;
-    Position district_position;
+    Position pos;
 };
 
 // [minx, maxx) [miny, maxy)

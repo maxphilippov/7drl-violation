@@ -65,8 +65,7 @@ class CityManager
 public:
     CityManager(MapSize size) :
     district_count(5),
-    size{ size },
-    district_map(generate(std::chrono::system_clock::now().time_since_epoch().count(), size))
+    size{ size }
     {
         used_districts.reserve(district_count);
     }
@@ -97,10 +96,10 @@ public:
         auto n = std::vector<int>();
     }
 
-    Position change_district(int id)
+    WorldPosition change_district(int id)
     {
         district_map = generate(std::chrono::system_clock::now().time_since_epoch().count(), size);
-        const auto player = Position {};
+        const auto player = WorldPosition { id, { 0, 0 } };
 
         return player;
     }

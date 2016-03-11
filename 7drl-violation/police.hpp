@@ -15,6 +15,7 @@
 #include "collisions.hpp"
 #include "id.hpp"
 #include "position.hpp"
+#include "interaction_types.hpp"
 
 // PO - Police officer
 
@@ -90,25 +91,25 @@ public:
         }
     }
     
-    void record_crime(id_name const& id, WorldPosition pos, violation_level level)
-    {
-        auto it = criminal_records.find(id);
-
-        if (it != std::end(criminal_records)) {
-            it->second.violation_level += level;
-            // FIXME: Pass district id
-            it->second.last_known_location = pos;
-        }
-    }
-    
     auto check_crime_history(id_name const& id) const
     {
         return criminal_records.at(id);
     }
 
-    auto record_crimes(std::vector<PoliceAlert> const& alerts) {
+    auto record_crimes(std::vector<PoliceAlert> const& alerts, std::vector<std::string> & message_log) {
         for(auto const& a: alerts) {
-            
+            auto id = a.id.name;
+            auto level = a.violation_level;
+            auto pos = a.pos;
+            auto it = criminal_records.find(id);
+
+            message_log.push_back("Registered crime");
+
+            if (it != std::end(criminal_records)) {
+                it->second.violation_level += level;
+                // FIXME: Pass district id
+                it->second.last_known_location = pos;
+            }
         }
     }
 };

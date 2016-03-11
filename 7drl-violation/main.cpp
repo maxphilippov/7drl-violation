@@ -91,16 +91,22 @@ public:
     half_size{ width / 2, height / 2 },
     player_id{ 0 },
     city{ MapSize { 512, 512 } },
-    crowds{ city.bounds() }
+    crowds{ city.bounds() },
+    input_manager{ time, items }
     {
         initscr();
         noecho();
-        //        curs_set(FALSE);
+        curs_set(FALSE);
         if (has_colors()) {
             start_color();
+            // Basic
             init_pair(1, COLOR_WHITE, COLOR_BLACK);
-            init_pair(2, COLOR_BLUE, COLOR_WHITE);
+            // PO colors
+            init_pair(2, COLOR_WHITE, COLOR_BLUE);
+            // Player color
             init_pair(3, COLOR_GREEN, COLOR_BLACK);
+            // Crowds
+            init_pair(4, COLOR_BLACK, COLOR_WHITE);
         }
 
         message_log.reserve(256);
@@ -111,48 +117,38 @@ public:
         printw("Thanks for playing Violation. See you soon, ma'am.");
         // FIXME: Commented for tests
         // getch();
+
+        curs_set(TRUE);
         endwin();
 
         refresh();
     }
-
+public:
     void run()
-    {
-        auto player_pos = Position{ 0, 0 };
-
-        player_id = collisions.add_moving_entity(player_pos);
-
-        printw("Your master is dead, the blood is on your hands, hurry up, they are looking for a female android");
-
-        // Find a nearest bar and look for a smuggler
-        // Don't pay for anything in public places unless you want police to know that
-        // Pay for a fake ID with the money you got left
-
-        getch();
-
-        loop(player_pos);
-    }
-private:
-    void loop(Position const& init_pos)
     {
         std::vector<PoliceAlert> police_alerts;
         std::vector<TravelData> travels;
-        std::vector<DialogData> dialogs;
+        std::vector<DialogData> dialogs = {{ intro_dialog() }};
 
-        auto player = init_pos;
+        // Random numbers
+        police_alerts.reserve(32);
+
+        auto player = city.change_district(0);
+
+        player_id = collisions.add_moving_entity(player.pos);
+
         auto input = '\0';
         while(true) {
             auto start = std::chrono::high_resolution_clock::now();
+            clear();
+
             if (exit_buttons.count(input) > 0) {
-                // FIXME:
-                //                auto exit = confirmation_screen(screen_size, "Are you sure you want to exit?");
+                // FIXME: auto exit = confirmation_screen(screen_size, "Are you sure you want to exit?");
                 auto exit = true; // autoexit for debugging
                 if (exit) {
                     break;
                 }
             }
-
-            clear();
 
             auto level_bounds = city.bounds();
 
@@ -160,9 +156,10 @@ private:
 
             if (actions.count(input) != 0) {
 
+                auto pos = player.pos;
                 auto player_interest = Bounds {
-                    player.x - screen_size.width, player.y - screen_size.width,
-                    player.x + screen_size.height, player.y + screen_size.height
+                    pos.x - screen_size.width, pos.y - screen_size.width,
+                    pos.x + screen_size.height, pos.y + screen_size.height
                 };
 
                 Velocity pVelocity;
@@ -186,7 +183,7 @@ private:
                 collisions.update(player_interest, city, dialogs);
 
                 // TODO: Should probably throw if we can't find a player
-                player = collisions.get_position(player_id).second;
+                player.pos = collisions.get_position(player_id).second;
 
                 // Adds interaction for completed jobs and probably creates something
                 // like CityChange with data on what to change in city before next turn
@@ -199,33 +196,26 @@ private:
                         break;
                         // FIXME: Testing
                     case 't':
-                        use_phone(turn_counter);
-                        break;
-                    case 'p':
-                    {
-                        auto r = confirmation_screen(screen_size, "You sure you want to purchase some stuff?");
-                        if (r) {
-                            auto balance = input_manager.purchase_charge(time, items, player, 3000);
-
-                            std::ostringstream ss;
-                            ss << "Your balance is: " << balance;
-                            message_log.push_back(ss.str());
-                        }
-                    }
+                        use_phone(player, turn_counter);
                         break;
                 }
             }
 
-            render(player, level_bounds);
+            render(player.pos, level_bounds);
 
-            render_log(message_log);
+            render_log(screen_size, message_log);
 
-            police.record_crimes(police_alerts);
+            police.record_crimes(police_alerts, message_log);
 
-            run_travels(travels, message_log);
+            auto next_district = run_travels(travels);
 
-            if (travels.empty()) {
+            if (next_district == -1) {
                 run_dialogs(screen_size, dialogs);
+            } else {
+                // FIXME: Restart collisions and police managers
+                city.change_district(next_district);
+                auto new_size = city.bounds();
+                crowds.resize(new_size);
             }
 
             refresh();
@@ -242,23 +232,11 @@ private:
             input = getch();
         }
     }
-
-    void use_phone(int turn_counter)
+private:
+    void use_phone(WorldPosition const& location, int turn_counter)
     {
-        auto dialog = phone_user_interface(turn_counter);
+        auto dialog = phone_user_interface(location, turn_counter, input_manager);
         render_dialog(screen_size, dialog);
-    }
-    
-    void travel(int id = 0)
-    {
-        auto response = confirmation_screen(screen_size, "Do you want to travel to x?");
-
-        if (response) {
-            // FIXME: temp id
-//            interactions.add_travel(id);
-        } else {
-            message_log.push_back("Travel canceled");
-        }
     }
 
     void render(Position const& player, MapSize const& bounds) const
@@ -279,7 +257,9 @@ private:
                 auto world_x = left + x;
                 auto world_y = top + y;
                 auto code = city.get(world_x, world_y);
+                if (code == MapTile::Crowd) attron(COLOR_PAIR(4));
                 mvaddch(y, x, symbols::mapTiles.at(code));
+                if (code == MapTile::Crowd) attroff(COLOR_PAIR(4));
             }
         }
         attroff(COLOR_PAIR(1));
@@ -290,7 +270,7 @@ private:
         attron(COLOR_PAIR(2));
         for(auto const& pos: actor_positions) {
             // TODO: Color hostile actors with red background?
-            // FIXME: Now renders an actor under player too
+            // FIXME: Renders an actor under player too
             auto x = pos.x - left;
             auto y = pos.y - top;
             mvaddch(y, x, symbols::actors.at(2));
@@ -302,24 +282,11 @@ private:
         mvaddch(half_size.height, half_size.width, symbols::actors.at(0));
         attroff(COLOR_PAIR(3));
     }
-
-    // TODO: Move it to interface.hpp
-    void render_log(std::vector<std::string> const& message_log) const
-    {
-        if (message_log.size() > 0) {
-            int y_offset = 2;
-            auto end = std::crend(message_log);
-            for(auto it = std::rbegin(message_log); it != end; ++it) {
-                mvprintw(screen_size.height + y_offset, 3, it->c_str());
-                y_offset += 1;
-            }
-        }
-    }
 };
 
 int main(int argc, const char * argv[]) {
     // FIXME: Reduce screen size to 20, 20 instead of any kind of vision control
-    Game g(80, 30);
+    Game g(80, 20);
     
     g.run();
     

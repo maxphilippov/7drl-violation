@@ -12,12 +12,12 @@
 
 #include "time.hpp"
 #include "id.hpp"
-#include "interactions.hpp"
+#include "interaction_types.hpp"
 
 struct PurchaseCheck
 {
     IDData data;
-    Position pos;
+    WorldPosition pos;
     int price;
     int finish_by_turn;
 };
@@ -25,7 +25,7 @@ struct PurchaseCheck
 struct IDCheck
 {
     IDData data;
-    Position pos;
+    WorldPosition pos;
     int finish_by_turn;
 };
 
@@ -59,7 +59,7 @@ public:
     }
     
     void add_purchase_check(IDData id,
-                            Position pos,
+                            WorldPosition pos,
                             int price,
                             Hours time_to_finish = purchase_check_default_time)
     {
@@ -77,7 +77,7 @@ public:
     }
 
     void add_id_check(IDData id,
-                      Position pos,
+                      WorldPosition pos,
                       Hours time_to_finish = id_check_default_time)
     {
         auto c = IDCheck {
@@ -96,11 +96,12 @@ public:
             while(job.finish_by_turn == turn_counter) {
                 purchases_checks.pop();
                 if (job.data.balance - job.price < 0) {
-                    // FIXME: push to police_alerts
-//                    interactions.add_police_alert(
-//                        //FIXME: Violation level
-//                        job.data, job.pos, 1
-//                    );
+                    police_alerts.push_back(PoliceAlert {
+                        job.data,
+                        job.pos,
+                        // FIXME: Violation level
+                        3
+                    });
                 }
                 job = purchases_checks.front();
             }

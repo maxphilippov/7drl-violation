@@ -12,36 +12,19 @@
 #include <map>
 #include <sstream>
 
-#include "dialog.hpp"
+#include "interaction_types.hpp"
 #include "id.hpp"
 #include "interface.hpp"
 #include "map.hpp"
 
-struct TravelData
-{
-    int destination_id;
-};
-
-struct DialogData
-{
-    DialogNode root;
-};
-
-struct PoliceAlert
-{
-    IDData id;
-    Position pos;
-    int violation_level;
-};
-
-auto run_travels(std::vector<TravelData> const& travels, std::vector<std::string> & message_log)
+auto run_travels(std::vector<TravelData> const& travels)
 {
     for(auto const& t: travels)
     {
-        std::ostringstream ss;
-        ss << "Traveled to district #" << t.destination_id;
-        message_log.push_back(ss.str());
+        return t.destination_id;
     }
+
+    return -1;
 }
 
 auto run_dialogs(MapSize const& screen_size, std::vector<DialogData> const& dialogs)

@@ -17,7 +17,7 @@ struct LogMessage
     int turn_timer;
 };
 
-std::string save_log_message(LogMessage const& m) {
+std::string format_log_message(LogMessage const& m) {
     std::stringstream ss;
 }
 

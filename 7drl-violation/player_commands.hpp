@@ -10,6 +10,7 @@
 
 #include <sstream>
 
+#include "interaction_types.hpp"
 #include "items.hpp"
 #include "id.hpp"
 #include "timeline.hpp"
@@ -17,11 +18,16 @@
 // Maybe create it every game loop and pass everyting in?
 class PlayerInput
 {
+    Timeline& time;
+    InventoryManager& items;
 public:
-    auto pay_for_something(Timeline & time,
-                  InventoryManager & items,
-                  Position const& pos,
-                  int price)
+    PlayerInput(Timeline & time,
+                InventoryManager & items) :
+    time(time),
+    items(items) {}
+
+    auto pay_for_something(WorldPosition const& pos,
+                           int price)
     {
         auto id = items.get_id();
         auto balance = items.pay(price);
@@ -30,17 +36,9 @@ public:
         return balance;
     }
 
-    auto purchase_charge(Timeline & time,
-                         InventoryManager & items,
-                         Position const& pos,
-                         int price)
-    {
-        return pay_for_something(time, items, pos, price);
-    }
-
     auto travel(int district_id)
     {
-
+        // push TravelData { district_id }
     }
 };
 

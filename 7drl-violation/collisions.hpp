@@ -14,7 +14,7 @@
 #include <unordered_map>
 
 #include "map.hpp"
-#include "interactions.hpp"
+#include "interaction_types.hpp"
 #include "position.hpp"
 #include "city.hpp"
 

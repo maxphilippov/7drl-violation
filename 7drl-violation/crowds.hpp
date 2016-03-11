@@ -34,7 +34,7 @@ public:
         crowds_map.resize(size.width * size.height);
         std::for_each(std::begin(crowds_map),
                       std::end(crowds_map),
-                      [](auto v) { v = MapTile::Empty; });
+                      [](auto& v) { v = MapTile::Empty; });
     }
 
     void update(Bounds const& simulation_bounds, MapCells const& map, int turn_count)

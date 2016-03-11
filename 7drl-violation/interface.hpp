@@ -28,10 +28,30 @@ public:
     WINDOW* raw() const { return ptr; }
 };
 
+void render_log(MapSize const& screen, std::vector<std::string> const& message_log)
+{
+    if (!message_log.empty()) {
+        auto height = 7;
+        auto y_offset = 2;
+//        const auto b = Bounds{
+//            0, screen.height + y_offset,
+//            screen.width, screen.height
+//        };
+//        const auto w = WindowHandler{ b };
+
+        auto end = std::crbegin(message_log) + height;
+
+        for(auto it = std::rbegin(message_log); it != end; ++it) {
+            mvprintw(screen.height + y_offset, 3, it->c_str());
+            y_offset += 1;
+        }
+    }
+}
+
 bool confirmation_screen(MapSize const& screen, std::string const& message)
 {
     const auto b = Bounds{ 0, 0, screen.width, screen.height };
-    const auto w = WindowHandler{b};
+    const auto w = WindowHandler{ b };
     const auto x_offset = 3;
     const auto y_offset = 6;
     mvwprintw(w.raw(), y_offset, x_offset, message.c_str());
@@ -55,7 +75,7 @@ void print_node(WINDOW * w, DialogNode const& d, int selected_node = 0)
 
     auto idx = 0;
 
-    auto replies_count = d.replies.size();
+    auto replies_count = static_cast<int>(d.replies.size());
 
     for(auto const& r: d.replies) {
         if (idx == selected_node ) wattron(w, A_REVERSE);
@@ -69,7 +89,7 @@ void print_node(WINDOW * w, DialogNode const& d, int selected_node = 0)
               10, x_pos,
               (replies_count != 0) ?
               "j, k - pick line, <spacebar> - confirm" :
-              "<Press any key to continue>");
+              "<Press spacebar to continue>");
 
     const auto choice = wgetch(w);
 
@@ -106,8 +126,8 @@ void print_node(WINDOW * w, DialogNode const& d, int selected_node = 0)
 
 void render_dialog(MapSize const& screen, DialogNode const& root)
 {
-    const auto b = Bounds { 0, screen.height, screen.width, screen.height };
-    const auto w = WindowHandler {b};
+    const auto b = Bounds{ 0, screen.height, screen.width, screen.height };
+    const auto w = WindowHandler{ b };
 
     print_node(w.raw(), root);
 }
