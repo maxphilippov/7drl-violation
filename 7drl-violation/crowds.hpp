@@ -43,7 +43,12 @@ public:
             // FIXME:
             srand(turn_count * simulation_bounds.maxx);
             auto center = Position{ rand() % size.width, rand() % size.height };
-            spawn_crowd(map, center);
+
+            crowd_centers.push_back(center);
+
+            for(auto const& c: crowd_centers) {
+                spawn_crowd(map, c);
+            }
         }
     }
     
@@ -52,13 +57,11 @@ public:
         return crowds_map;
     }
 private:
-    void spawn_crowd(MapCells const& cells, Position const& pos)
+    void spawn_crowd(MapCells const& map, Position const& pos)
     {
-        auto idx = get_map_position(cells, size, pos);
+        auto idx = get_map_position(map, size, pos);
 
         crowds_map.at(idx) = MapTile::Crowd;
-
-        crowd_centers.push_back(pos);
     }
 };
 

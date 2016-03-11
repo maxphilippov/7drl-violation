@@ -12,6 +12,7 @@
 #include <sstream>
 #include <vector>
 
+#include "id.hpp"
 #include "interaction_types.hpp"
 #include "player_commands.hpp"
 #include "time.hpp"
@@ -38,11 +39,16 @@ auto police_officer_interaction()
     return root;
 }
 
-auto phone_user_interface(WorldPosition const& location, int turn_counter, PlayerInput & input)
+auto phone_user_interface(WorldPosition const& location,
+                          IDData const& data,
+                          PlayerInput & input,
+                          int turn_counter)
 {
     std::ostringstream ss;
 
-    ss << turns_to_hours(turn_counter) << " hours passed";
+    ss << turns_to_hours(turn_counter) << " hours passed.";
+
+    ss << "You're under id, " << data.name;
 
     auto root = DialogNode {
         ss.str(), {

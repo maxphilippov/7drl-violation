@@ -53,6 +53,12 @@ class PoliceManager
 
     std::vector<WorldPosition> points_of_interest;
 public:
+    void restart()
+    {
+        cops_on_the_street.clear();
+        on_patrol_mission.clear();
+    }
+
     void update(Bounds const& simulation_bounds,
                 CollisionManager& collisions,
                 int turn_count)
@@ -98,7 +104,7 @@ public:
 
     auto record_crimes(std::vector<PoliceAlert> const& alerts, std::vector<std::string> & message_log) {
         for(auto const& a: alerts) {
-            auto id = a.id.name;
+            auto id = a.id;
             auto level = a.violation_level;
             auto pos = a.pos;
             auto it = criminal_records.find(id);

@@ -114,8 +114,9 @@ void print_node(WINDOW * w, DialogNode const& d, int selected_node = 0)
             break;
         case ' ':
             if (replies_count != 0) {
-                auto next_node = d.replies.at(selected_node);
-                print_node(w, next_node.second);
+                auto next_node = d.replies.at(selected_node).second;
+                next_node.action();
+                print_node(w, next_node);
             }
             break;
         default:

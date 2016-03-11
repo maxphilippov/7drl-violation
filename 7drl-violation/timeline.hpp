@@ -97,7 +97,7 @@ public:
                 purchases_checks.pop();
                 if (job.data.balance - job.price < 0) {
                     police_alerts.push_back(PoliceAlert {
-                        job.data,
+                        job.data.id,
                         job.pos,
                         // FIXME: Violation level
                         3

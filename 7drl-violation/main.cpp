@@ -82,8 +82,6 @@ private:
     PoliceManager police;
     InventoryManager items;
 
-    PlayerInput input_manager;
-
     std::vector<std::string> message_log;
 public:
     Game(int width, int height) :
@@ -91,8 +89,7 @@ public:
     half_size{ width / 2, height / 2 },
     player_id{ 0 },
     city{ MapSize { 512, 512 } },
-    crowds{ city.bounds() },
-    input_manager{ time, items }
+    crowds{ city.bounds() }
     {
         initscr();
         noecho();
@@ -129,6 +126,12 @@ public:
         std::vector<PoliceAlert> police_alerts;
         std::vector<TravelData> travels;
         std::vector<DialogData> dialogs = {{ intro_dialog() }};
+
+        PlayerInput input_manager{
+            time,
+            items,
+            travels
+        };
 
         // Random numbers
         police_alerts.reserve(32);
@@ -196,7 +199,7 @@ public:
                         break;
                         // FIXME: Testing
                     case 't':
-                        use_phone(player, turn_counter);
+                        use_phone(player, input_manager, turn_counter);
                         break;
                 }
             }
@@ -207,15 +210,19 @@ public:
 
             police.record_crimes(police_alerts, message_log);
 
+            run_dialogs(screen_size, dialogs);
+
             auto next_district = run_travels(travels);
 
-            if (next_district == -1) {
-                run_dialogs(screen_size, dialogs);
-            } else {
-                // FIXME: Restart collisions and police managers
-                city.change_district(next_district);
+            if (next_district != -1) {
+                player = city.change_district(next_district);
                 auto new_size = city.bounds();
                 crowds.resize(new_size);
+                collisions.restart();
+                player_id = collisions.add_moving_entity(player.pos);
+                police.restart();
+                // FIXME: Change time
+                time.skip_time({ 1.5f });
             }
 
             refresh();
@@ -233,9 +240,9 @@ public:
         }
     }
 private:
-    void use_phone(WorldPosition const& location, int turn_counter)
+    void use_phone(WorldPosition const& location, PlayerInput & input_manager, int turn_counter)
     {
-        auto dialog = phone_user_interface(location, turn_counter, input_manager);
+        auto dialog = phone_user_interface(location, items.get_id(), input_manager, turn_counter);
         render_dialog(screen_size, dialog);
     }
 

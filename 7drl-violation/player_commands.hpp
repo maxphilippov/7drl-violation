@@ -9,22 +9,25 @@
 #define player_commands_h
 
 #include <sstream>
+#include <vector>
 
 #include "interaction_types.hpp"
 #include "items.hpp"
-#include "id.hpp"
 #include "timeline.hpp"
 
-// Maybe create it every game loop and pass everyting in?
+// Maybe it should be called GameActions or something
 class PlayerInput
 {
     Timeline& time;
     InventoryManager& items;
+    std::vector<TravelData>& travels;
 public:
     PlayerInput(Timeline & time,
-                InventoryManager & items) :
+                InventoryManager & items,
+                std::vector<TravelData> & travels) :
     time(time),
-    items(items) {}
+    items(items),
+    travels(travels) {}
 
     auto pay_for_something(WorldPosition const& pos,
                            int price)
@@ -36,9 +39,21 @@ public:
         return balance;
     }
 
+    auto pay_anonymously(int price)
+    {
+        auto balance = items.pay(price);
+
+        return balance;
+    }
+
+    auto purchase_fake_id() {
+        // FIXME: Change price based on id type
+        auto balance = pay_anonymously(3000);
+    }
+
     auto travel(int district_id)
     {
-        // push TravelData { district_id }
+        travels.push_back({ district_id });
     }
 };
 

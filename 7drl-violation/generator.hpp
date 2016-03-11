@@ -56,7 +56,12 @@ public:
         }
 
         auto generator = std::mt19937(seed);
-        auto d = std::uniform_int_distribution<>(0,1);
+        auto width = bounds.maxx - bounds.minx;
+        auto height = bounds.maxy - bounds.miny;
+        auto d = std::discrete_distribution<>({
+            static_cast<double>(width / height),
+            static_cast<double>(height / width)
+        });
 
         auto dir = d(generator);
 
@@ -110,11 +115,12 @@ public:
     }
 };
 
-auto& fill_bounds(MapCells& cells,
+template <typename T>
+auto& fill_bounds(std::vector<T>& cells,
                   Bounds const& mapSize,
                   std::vector<Bounds> const& paintInside,
-                  MapTile value,
-                  MapTile borderValue
+                  T value,
+                  T borderValue
                   )
 {
     auto mapWidth = mapSize.maxx - mapSize.minx;
@@ -137,48 +143,11 @@ auto& fill_bounds(MapCells& cells,
     return cells;
 }
 
-struct Building
+struct MapData
 {
-    // TODO: add building purpose
-    std::vector<Position> doors;
-    Bounds bounds;
+    MapCells cells;
+    std::vector<BuildingType> buildings_areas;
 };
-
-auto& fill_buildings(MapCells& cells,
-                     Bounds const& mapSize,
-                     std::vector<Building> const& buildings,
-                     MapTile value)
-{
-    auto mapWidth = mapSize.maxx - mapSize.minx;
-    for(auto const& b: buildings) {
-        auto bounds = b.bounds.shrink(1);
-        auto minx = std::max(mapSize.minx, bounds.minx);
-        auto miny = std::max(mapSize.miny, bounds.miny);
-        auto maxx = std::min(mapSize.maxx, bounds.maxx);
-        auto maxy = std::min(mapSize.maxy, bounds.maxy);
-
-        auto b_doors = std::cbegin(b.doors);
-        auto e_doors = std::cend(b.doors);
-
-        for(auto j = miny; j < maxy; ++j) {
-            for(auto i = minx; i < maxx; ++i) {
-                auto it = std::find_if(b_doors,
-                                       e_doors,
-                                       [i, j](auto const& p ) {
-                                           return p.x != i && p.y != i;
-                                       }
-                                       );
-                auto pos = i + j * mapWidth;
-                cells.at(pos) = ((j != miny && i != minx &&
-                                  j != maxy - 1 && i != maxx -1) ||
-                                 it != e_doors)
-                ? value : MapTile::Wall;
-            }
-        }
-    }
-
-    return cells;
-}
 
 auto generate(int seed, MapSize const& size) {
     auto level_bounds = Bounds{ 0, 0, size.width, size.height };
@@ -187,15 +156,15 @@ auto generate(int seed, MapSize const& size) {
 
     auto rootBlock = CityBlock{ level_bounds };
 
-    auto minwidth = std::max(size.width / 4, 6);
-    auto minheight = std::max(size.height / 4, 6);
+    auto minwidth = std::max(size.width / 6, 6);
+    auto minheight = std::max(size.height / 6, 6);
     rootBlock.divide(seed, MapSize{ minwidth, minheight });
 
     auto all_bounds = rootBlock.all_bounds();
 
     std::for_each(std::begin(all_bounds),
                   std::end(all_bounds),
-                  [](auto& b) { b = b.shrink(2); }
+                  [](auto& b) { b = b.shrink(4); }
                   );
 
     fill_bounds(r, level_bounds, all_bounds, MapTile::Empty, MapTile::Empty);
@@ -210,7 +179,12 @@ auto generate(int seed, MapSize const& size) {
                       auto bounds = block.all_bounds();
                       fill_bounds(r, level_bounds, bounds, MapTile::Empty, MapTile::Wall);
                   });
-    
+
+    auto data = MapData
+    {
+        r
+    };
+
     return r;
 }
 

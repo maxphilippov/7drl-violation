@@ -18,9 +18,9 @@
 struct DialogNode
 {
     typedef std::vector<std::pair<std::string, DialogNode>> Replies;
-    std::string message;
+    std::string message = "Nothing happened";
     Replies replies;
-    std::function<void()> action;
+    std::function<void()> action = []() {};
 };
 
 struct DialogData
@@ -35,7 +35,7 @@ struct TravelData
 
 struct PoliceAlert
 {
-    IDData id;
+    IDData::id_type id;
     WorldPosition pos;
     int violation_level;
 };

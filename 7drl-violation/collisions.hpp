@@ -31,7 +31,15 @@ struct PhysicalData
     std::vector<Velocity> velocities;
     std::vector<id_type> ids;
 
-    id_type next_id;
+    id_type next_id = 0;
+
+    auto clear()
+    {
+        positions.clear();
+        velocities.clear();
+        ids.clear();
+        next_id = 0;
+    }
 
     auto add_object(Position pos, Velocity vel)
     {
@@ -97,9 +105,9 @@ class CollisionManager
 {
     PhysicalData all_data;
 public:
-
-    CollisionManager()
+    void restart()
     {
+        all_data.clear();
     }
 
     void update(Bounds const& simulation_bounds,

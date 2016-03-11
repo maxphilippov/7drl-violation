@@ -9,11 +9,8 @@
 #define interactions_h
 
 #include <vector>
-#include <map>
-#include <sstream>
 
 #include "interaction_types.hpp"
-#include "id.hpp"
 #include "interface.hpp"
 #include "map.hpp"
 

@@ -9,21 +9,74 @@
 #define id_h
 
 #include <string>
+#include <vector>
+#include <random>
 
 struct IDData
 {
-    typedef std::string id_type;
+    typedef unsigned long id_type;
+
+    id_type id;
     
-    id_type name;
+    std::string name;
     
     enum Type
     {
         human,
-        android
+        android,
+        ITEMS_COUNT
     } type;
     
     int balance;
 };
+
+class IDGenerator
+{
+    static const std::vector<std::string> names_pool;
+    // 0 is reserved for player id, bad decision
+    IDData::id_type id = 1;
+
+    auto random_type() const
+    {
+        std::default_random_engine rd;
+        std::mt19937 gen(rd());
+        auto max = static_cast<int>(IDData::Type::ITEMS_COUNT);
+        std::uniform_int_distribution<> dist{0, max};
+        auto val = dist(gen);
+        return static_cast<IDData::Type>(val);
+    }
+
+    auto random_name() const
+    {
+        std::default_random_engine rd;
+        std::mt19937 gen(rd());
+
+        auto max = names_pool.size();
+        std::uniform_int_distribution<unsigned long> dist{0, max};
+
+        auto pos = dist(gen);
+        return names_pool.at(pos);
+    }
+
+public:
+    auto next(int balance)
+    {
+        auto new_id = IDData {
+            id,
+            random_name(),
+            random_type(),
+            balance
+        };
+        ++id;
+
+        return new_id;
+    }
+};
+
+const std::vector<std::string> IDGenerator::names_pool = {
+    "Aiko", "Aimi", "Airi", "Akira"
+};
+
 
 // One id is attached to you
 // You can have a phone with a fake ID

@@ -14,6 +14,22 @@
 
 #include "position.hpp"
 
+enum BuildingType
+{
+    house,
+    clinic,
+    bar,
+    shop, // ? What do we need shop for?
+    tube_station,
+    BUILDING_TYPES_COUNT
+};
+
+struct Building
+{
+    BuildingType type;
+    Bounds bounds;
+};
+
 struct DistrictData
 {
     int id;
