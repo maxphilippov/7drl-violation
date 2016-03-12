@@ -126,6 +126,8 @@ public:
 
         player_id = collisions.add_moving_entity(player.pos);
 
+        auto win = false;
+
         auto input = '\0';
         while(true) {
             auto start = std::chrono::high_resolution_clock::now();
@@ -208,6 +210,10 @@ public:
             render_log(screen_size, message_log);
 
             police.record_crimes(police_alerts, message_log);
+
+            if (win) {
+                dialogs.push_back({ outro_dialog(screen_size) });
+            }
 
             run_dialogs(screen_size, dialogs);
 

@@ -43,7 +43,7 @@ namespace utility
                 }
             } } );
         }
-        
+
         return replies;
     }
 }
@@ -238,18 +238,110 @@ auto intro_dialog()
     return root;
 }
 
-auto outro_dialog()
+auto prison_dialog()
 {
     auto root = DialogNode {
-        "You slipped away, now you're safe", {
+        "You can say that was close, but they got you", {
             {
                 "<Continue>", {
-                    "", {}, []() { auto name = prompt("What's your name?"); }
+                    "Bet that's gonna be hard to explain why you killed him",
+                    {},
+                    []() {
+                        // end game
+                    }
                 }
             }
         }
     };
 
+    return root;
+}
+
+auto death_dialog()
+{
+    auto root = DialogNode {
+        "Well you're dead now, at least they couldn't get you", {
+            {
+                "<Continue>", {
+                    "",
+                    {},
+                    []() {
+                        // end game
+                    }
+                }
+            }
+        }
+    };
+
+    return root;
+}
+
+auto no_charge_dialog()
+{
+    auto root = DialogNode {
+        "Your battery is done, you're not a human after all", {
+            {
+                "<Continue>", {
+                    "You gotta recharge often, now they gonna get you",
+                    {
+                        {
+                            "<Continue>", {
+                                "Let's skip that part when they ask you why you did that",
+                                {},
+                                []() {
+                                    // end game
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    };
+
+    return root;
+}
+
+auto welcome_to_a_new_life_dialog(std::string const& name)
+{
+    std::ostringstream ss;
+
+    ss << "Welcome to a new life, " << name;
+
+    auto root = DialogNode {
+        ss.str(), {
+            {
+                "<Continue>", {
+                    "Anyway, why you did this?",
+                    {},
+                    []() {
+                        // end game
+                    }
+                }
+            }
+        }
+    };
+
+    return root;
+}
+
+auto outro_dialog(MapSize const& screen)
+{
+    auto root = DialogNode {
+        "You slipped away, now you're safe", {
+            {
+                "<Continue>", {
+                    "", {},
+                    [&screen]() {
+                        auto name = prompt("What's your name: ");
+
+                        render_dialog(screen, welcome_to_a_new_life_dialog(name));
+                    }
+                }
+            }
+        }
+    };
+    
     return root;
 }
 

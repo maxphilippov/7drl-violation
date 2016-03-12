@@ -151,9 +151,11 @@ auto run_dialogs(MapSize const& screen_size,
 
 auto prompt(std::string const& message)
 {
+    echo();
     printw(message.c_str());
     char result[80];
     getstr(result);
+    noecho();
     return std::string{ result };
 }
 
