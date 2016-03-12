@@ -33,9 +33,15 @@ std::string build_help_message() {
 
     ss << "\n\t"  << symbols::map_tiles.at(MapTile::Wall) << " - wall";
 
-    ss << "\n\t"  << symbols::map_tiles.at(MapTile::Door) << " - door";
-
     ss << "\n\t"  << symbols::map_tiles.at(MapTile::Crowd) << " - crowd";
+
+    ss << "\n\t"  << symbols::map_tiles.at(MapTile::Bar) << " - bar";
+
+    ss << "\n\t"  << symbols::map_tiles.at(MapTile::Clinic) << " - clinic";
+
+    ss << "\n\t"  << symbols::map_tiles.at(MapTile::Repairs) << " - repair+recharge shop";
+
+    ss << "\n\t"  << symbols::map_tiles.at(MapTile::Station) << " - station";
 
     ss << "\nTips:";
 
