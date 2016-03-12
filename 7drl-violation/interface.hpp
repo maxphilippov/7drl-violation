@@ -139,6 +139,16 @@ void render_dialog(MapSize const& screen, DialogNode const& root)
     print_node(w.raw(), root);
 }
 
+auto run_dialogs(MapSize const& screen_size,
+                 std::vector<DialogData> const& dialogs)
+{
+
+    for(auto const& d: dialogs)
+    {
+        render_dialog(screen_size, d.root);
+    }
+}
+
 auto prompt(std::string const& message)
 {
     printw(message.c_str());

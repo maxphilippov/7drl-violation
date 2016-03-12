@@ -28,11 +28,6 @@ struct DialogData
     DialogNode root;
 };
 
-struct TravelData
-{
-    int destination_id;
-};
-
 struct PoliceAlert
 {
     identity_id_type id;

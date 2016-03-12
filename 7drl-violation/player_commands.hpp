@@ -11,7 +11,7 @@
 #include <sstream>
 #include <vector>
 
-#include "interaction_types.hpp"
+#include "basic_types.hpp"
 #include "items.hpp"
 #include "timeline.hpp"
 
@@ -20,11 +20,11 @@ class PlayerInput
 {
     Timeline& time;
     InventoryManager& items;
-    std::vector<TravelData>& travels;
+    std::vector<district_id_type>& travels;
 public:
     PlayerInput(Timeline & time,
                 InventoryManager & items,
-                std::vector<TravelData> & travels) :
+                std::vector<district_id_type> & travels) :
     time(time),
     items(items),
     travels(travels) {}
@@ -57,9 +57,9 @@ public:
         auto balance = pay_anonymously(3000);
     }
 
-    auto travel(int district_id)
+    auto travel(district_id_type district_id)
     {
-        travels.push_back({ district_id });
+        travels.push_back(district_id);
     }
 };
 

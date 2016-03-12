@@ -21,7 +21,7 @@
 #include "map.hpp"
 #include "city.hpp"
 #include "collisions.hpp"
-#include "interactions.hpp"
+#include "interface.hpp"
 #include "items.hpp"
 #include "police.hpp"
 #include "position.hpp"
@@ -109,7 +109,7 @@ public:
     {
         std::vector<PoliceAlert> police_alerts;
         // A vector of travels is pretty stupid
-        std::vector<TravelData> travels;
+        std::vector<district_id_type> travels;
         std::vector<DialogData> dialogs = {{ intro_dialog() }};
 
         std::vector<ActorCollisionInfo> collisions_info;
@@ -120,7 +120,6 @@ public:
             travels
         };
 
-        // Random numbers
         police_alerts.reserve(32);
 
         auto player = city.change_district({}, 0);
@@ -212,7 +211,7 @@ public:
 
             run_dialogs(screen_size, dialogs);
 
-            auto next_district = run_travels(travels);
+            auto next_district = travels.empty() ? -1 : travels.back();
 
             if (next_district != -1) {
                 player = city.change_district(player, next_district);

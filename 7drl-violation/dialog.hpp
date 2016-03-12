@@ -56,7 +56,7 @@ auto bar_interaction()
     return root;
 }
 
-auto clinic_interaction()
+auto clinic_interaction(WorldPosition const& loc)
 {
     auto root = DialogNode{
         "You walk down the hall and see a bloodpack lying right under your feet", {
