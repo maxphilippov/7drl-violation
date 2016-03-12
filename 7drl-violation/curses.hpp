@@ -2,7 +2,9 @@
 //  curses.hpp
 //  7drl-violation
 //
-//  Copyright © 2016 Max Philippov
+//  Just for a macro
+//
+//  Copyright Â© 2016 Max Philippov
 //
 
 #ifndef curses_h

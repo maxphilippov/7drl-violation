@@ -21,6 +21,32 @@
 #include "city.hpp"
 #include "time.hpp"
 
+namespace utility
+{
+    auto travel_options(WorldPosition const& location,
+                        IDData const& data,
+                        PlayerInput & input,
+                        std::vector<district_id_type> const& ids,
+                        int turn_counter)
+    {
+        auto replies = DialogNode::Replies{};
+        for(auto const& id: ids) {
+            std::ostringstream ss;
+
+            ss << "District #" << id;
+            replies.push_back({ ss.str(), {
+                "", {},
+                [&input, &location, id]() {
+                    input.pay_for_something(location, 1000);
+                    input.travel(id);
+                }
+            } } );
+        }
+        
+        return replies;
+    }
+}
+
 auto bar_interaction()
 {
     auto root = DialogNode{
@@ -115,29 +141,6 @@ auto police_officer_interaction(WorldPosition const& location,
     return root;
 }
 
-auto travel_options(WorldPosition const& location,
-                          IDData const& data,
-                          PlayerInput & input,
-                          std::vector<district_id_type> const& ids,
-                          int turn_counter)
-{
-    auto replies = DialogNode::Replies{};
-    for(auto const& id: ids) {
-        std::ostringstream ss;
-
-        ss << "District #" << id;
-        replies.push_back({ ss.str(), {
-            "", {},
-            [&input, &location, id]() {
-                input.pay_for_something(location, 1000);
-                input.travel(id);
-            }
-        } } );
-    }
-
-    return replies;
-}
-
 auto station_travel_dialog(WorldPosition const& location,
                            IDData const& data,
                            PlayerInput & input,
@@ -145,7 +148,8 @@ auto station_travel_dialog(WorldPosition const& location,
                            int turn_counter)
 {
     auto root = DialogNode {
-        "", travel_options(location, data, input, neighbour_districts, turn_counter)
+        "Where to? It's one-way ticket",
+        utility::travel_options(location, data, input, neighbour_districts, turn_counter)
     };
 
     return root;
@@ -163,7 +167,8 @@ auto phone_user_interface(WorldPosition const& location,
 
     ss << turns_to_hours(turn_counter) << " hours passed.";
 
-    ss << "You're under id, " << data.name;
+    // FIXME: Write only fake ID and set connection type
+    ss << "You're under id, " << data.name << ". Your connection is public.";
 
     auto travel_options = DialogNode::Replies{};
 
@@ -197,10 +202,16 @@ auto phone_user_interface(WorldPosition const& location,
                 }
             },
             {
+                // Adds a point of interest to police, if you do it twice with same ID
+                // it will be recorded as violation
                 "Call police", {}
             },
             {
                 "Travel", station_travel_dialog(location, data, input, neighbour_districts, turn_counter)
+            },
+            {
+                // FIXME: Change connection to another node // ? why
+                "Change node", {}
             },
             {
                 "Quit", {}
@@ -215,6 +226,21 @@ auto intro_dialog()
 {
     auto root = DialogNode {
         "Your master is dead, the blood is on your hands\nHurry up, they are looking for a female android", {}
+    };
+
+    return root;
+}
+
+auto outro_dialog()
+{
+    auto root = DialogNode {
+        "You slipped away, now you're safe", {
+            {
+                "Continue", {
+                    "", {}, []() { /*auto name = prompt("What's your name?");*/ }
+                }
+            }
+        }
     };
 
     return root;

@@ -27,7 +27,6 @@ auto turns_to_hours(int turns) {
 auto late_hours(int current_turn) {
     auto h = turns_to_hours(current_turn);
 
-    auto day = h / 24.0f;
     auto hour_in_day = static_cast<int>(h) % 24;
 
     return 19 < hour_in_day || hour_in_day < 7;

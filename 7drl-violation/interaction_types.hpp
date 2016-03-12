@@ -13,8 +13,6 @@
 #include <vector>
 
 #include "basic_types.hpp"
-
-#include "id.hpp"
 #include "position.hpp"
 
 struct DialogNode

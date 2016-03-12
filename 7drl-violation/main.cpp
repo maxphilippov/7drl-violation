@@ -15,6 +15,7 @@
 
 #include "curses.hpp"
 
+#include "dialog.hpp"
 #include "crowds.hpp"
 #include "symbols.hpp"
 #include "map.hpp"

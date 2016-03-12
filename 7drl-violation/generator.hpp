@@ -9,6 +9,7 @@
 #define generator_h
 
 #include <algorithm>
+#include <iterator>
 #include <random>
 #include <memory>
 
@@ -143,6 +144,7 @@ auto& fill_bounds(std::vector<T>& cells,
     return cells;
 }
 
+// FIXME: Ok we don't need that
 struct MapData
 {
     MapCells cells;
@@ -169,16 +171,24 @@ auto generate(int seed, MapSize const& size) {
 
     fill_bounds(r, level_bounds, all_bounds, MapTile::Empty, MapTile::Empty);
 
-    // FIXME: It's terrible, but I'm trying to reuse CityBlock for building
-    // generation
+    auto building_bounds = std::vector<Bounds>();
+
     std::for_each(std::begin(all_bounds),
                   std::end(all_bounds),
-                  [&r, seed, &level_bounds](auto const& b) {
+                  [&r, seed, &building_bounds](auto const& b) {
                       auto block = CityBlock{ b };
                       block.divide(seed, MapSize{ 8, 8 }, 2);
                       auto bounds = block.all_bounds();
-                      fill_bounds(r, level_bounds, bounds, MapTile::Empty, MapTile::Wall);
+                      building_bounds.insert(std::end(building_bounds),
+                                             std::begin(bounds),
+                                             std::end(bounds));
                   });
+
+    auto random_tiles = std::vector<MapTile>(building_bounds.size());
+
+    std::random_shuffle(std::begin(random_tiles), std::end(random_tiles));
+
+    fill_bounds(r, level_bounds, building_bounds, MapTile::Empty, MapTile::Wall);
 
     auto data = MapData
     {

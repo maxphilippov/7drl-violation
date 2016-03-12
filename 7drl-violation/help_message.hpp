@@ -27,7 +27,7 @@ std::string build_help_message() {
 
     ss << "\n\t" << symbols::actors.at(1) << " - police officer";
 
-    ss << "\n\t" << symbols::map_tiles.at(MapTile::Empty) << " - empty tile";
+    ss << "\n\t" << symbols::map_tiles.at(MapTile::Empty) << " - street";
 
     ss << "\n\t" << symbols::map_tiles.at(MapTile::Road) << " - road";
 

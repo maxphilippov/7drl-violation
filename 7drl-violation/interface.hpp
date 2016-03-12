@@ -12,7 +12,9 @@
 
 #include <string>
 
-#include "dialog.hpp"
+#include "map.hpp"
+#include "position.hpp"
+#include "interaction_types.hpp"
 #include "help_message.hpp"
 
 class WindowHandler
@@ -78,6 +80,8 @@ void print_node(WINDOW * w, DialogNode const& d, int selected_node = 0)
 
     auto replies_count = static_cast<int>(d.replies.size());
 
+    // FIXME: Add scrolling
+
     for(auto const& r: d.replies) {
         if (idx == selected_node ) wattron(w, A_REVERSE);
         y_pos += 2;
@@ -86,7 +90,7 @@ void print_node(WINDOW * w, DialogNode const& d, int selected_node = 0)
         ++idx;
     }
 
-    mvwprintw(w, 15, x_pos,
+    mvwprintw(w, y_pos + 2, x_pos,
               (replies_count != 0) ?
               "j, k - pick line, <spacebar> - confirm" :
               "<Press spacebar to continue>");
@@ -133,6 +137,14 @@ void render_dialog(MapSize const& screen, DialogNode const& root)
     const auto w = WindowHandler{ b };
     
     print_node(w.raw(), root);
+}
+
+auto prompt(std::string const& message)
+{
+    printw(message.c_str());
+    char result[80];
+    getstr(result);
+    return std::string{ result };
 }
 
 

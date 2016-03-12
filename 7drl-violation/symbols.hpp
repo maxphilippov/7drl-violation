@@ -19,9 +19,13 @@ namespace symbols
     const std::unordered_map<MapTile, char> map_tiles = {
         { MapTile::Empty, '.' }, // Empty space
         { MapTile::Wall, '#' }, // Wall
-        { MapTile::Road, '+' }, // Road
-        { MapTile::Door, '=' }, // Door
+        { MapTile::Road, '=' }, // Road
+        { MapTile::Door, ' ' }, // Door
         { MapTile::Crowd, 'C' },
+        { MapTile::Bar, 'b' },
+        { MapTile::Clinic, 'c' },
+        { MapTile::Repairs, 'r' },
+        { MapTile::Station, '-' }
     };
 
     const CharMap actors = {

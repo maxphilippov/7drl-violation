@@ -16,7 +16,6 @@
 
 struct IDData
 {
-
     identity_id_type id;
     
     std::string name;
@@ -31,9 +30,15 @@ struct IDData
     int balance;
 };
 
+namespace
+{
+    const std::vector<std::string> names_pool = {
+        "Aiko", "Aimi", "Airi", "Akira"
+    };
+}
+
 class IDGenerator
 {
-    static const std::vector<std::string> names_pool;
     // 0 is reserved for player id, bad decision
     identity_id_type id = 1;
 
@@ -72,10 +77,6 @@ public:
 
         return new_id;
     }
-};
-
-const std::vector<std::string> IDGenerator::names_pool = {
-    "Aiko", "Aimi", "Airi", "Akira"
 };
 
 

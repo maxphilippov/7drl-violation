@@ -9,6 +9,7 @@
 #define map_h
 
 #include <vector>
+#include <unordered_set>
 
 #include "position.hpp"
 
@@ -17,7 +18,15 @@ enum MapTile {
     Wall,
     Road,
     Door,
-    Crowd
+    Crowd,
+    Bar,
+    Clinic,
+    Station,
+    Repairs
+};
+
+const std::unordered_set<MapTile> interactive_tiles = {
+    MapTile::Bar, MapTile::Clinic, MapTile::Repairs, MapTile::Station
 };
 
 typedef int MapSide;
