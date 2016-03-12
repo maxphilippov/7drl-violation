@@ -14,6 +14,8 @@
 
 #include "random.hpp"
 
+#include "basic_types.hpp"
+
 #include "time.hpp"
 #include "collisions.hpp"
 #include "id.hpp"
@@ -45,10 +47,9 @@ class PoliceManager
     static const int spawn_interval = 12;
 
     typedef int violation_level;
-    typedef IDData::id_type id_name;
     // I don't need a fast lookup actually cause getting one value
     // out of this map is performed only when a PO checks your ID
-    std::map<id_name, CriminalRecord> criminal_records;
+    std::map<identity_id_type, CriminalRecord> criminal_records;
 
     std::vector<PhysicalData::id_type> cops_on_the_street;
 
@@ -103,7 +104,7 @@ public:
         }
     }
     
-    auto check_crime_history(id_name const& id) const
+    auto check_crime_history(identity_id_type const& id) const
     {
         return criminal_records.at(id);
     }

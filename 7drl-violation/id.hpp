@@ -12,11 +12,12 @@
 #include <vector>
 #include <random>
 
+#include "basic_types.hpp"
+
 struct IDData
 {
-    typedef unsigned long id_type;
 
-    id_type id;
+    identity_id_type id;
     
     std::string name;
     
@@ -34,7 +35,7 @@ class IDGenerator
 {
     static const std::vector<std::string> names_pool;
     // 0 is reserved for player id, bad decision
-    IDData::id_type id = 1;
+    identity_id_type id = 1;
 
     auto random_type() const
     {

@@ -12,6 +12,8 @@
 #include <string>
 #include <vector>
 
+#include "basic_types.hpp"
+
 #include "id.hpp"
 #include "position.hpp"
 
@@ -35,7 +37,7 @@ struct TravelData
 
 struct PoliceAlert
 {
-    IDData::id_type id;
+    identity_id_type id;
     WorldPosition pos;
     int violation_level;
 };
@@ -43,14 +45,14 @@ struct PoliceAlert
 namespace police_alerts
 {
 
-auto purchase_balance_alert(IDData::id_type id, WorldPosition const& pos)
+auto purchase_balance_alert(identity_id_type id, WorldPosition const& pos)
 {
     return PoliceAlert {
         id, pos, 3
     };
 }
 
-auto attempt_to_escape(IDData::id_type id, WorldPosition const& pos)
+auto attempt_to_escape(identity_id_type id, WorldPosition const& pos)
 {
     return PoliceAlert {
         id, pos, 20

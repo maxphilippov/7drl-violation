@@ -12,10 +12,12 @@
 #include <sstream>
 #include <vector>
 
+#include "basic_types.hpp"
 #include "id.hpp"
 #include "interaction_types.hpp"
 #include "player_commands.hpp"
-#include "district.hpp"
+
+#include "city.hpp"
 #include "time.hpp"
 
 // Constant declarations
@@ -40,25 +42,36 @@ auto police_officer_interaction()
     return root;
 }
 
+auto build_travel_options(WorldPosition const& location,
+                          IDData const& data,
+                          PlayerInput & input,
+                          std::vector<district_id_type> const& ids,
+                          int turn_counter)
+{
+    auto replies = DialogNode::Replies{};
+    for(auto const& id: ids) {
+        std::ostringstream ss;
+
+        ss << "District #" << id;
+        replies.push_back({ ss.str(), {
+            "", {},
+            [&input, &location, id]() {
+                input.pay_for_something(location, 1000);
+                input.travel(id);
+            }
+        } } );
+    }
+
+    return replies;
+}
+
 auto station_travel_dialog(WorldPosition const& location,
                            IDData const& data,
                            PlayerInput & input,
                            int turn_counter)
 {
     auto root = DialogNode {
-        "", {
-            {
-                "Purchase ticket",
-                {
-                    "Purchasing",
-                    {},
-                    [&input, &location]() {
-                        input.start_id_check(location);
-                        input.travel(1);
-                    }
-                }
-            }
-        }
+        "", build_travel_options(location, data, input, {0, 1, 2}, turn_counter)
     };
 
     return root;

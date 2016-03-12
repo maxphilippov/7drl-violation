@@ -15,6 +15,7 @@
 #include <unordered_map>
 #include <random>
 
+#include "basic_types.hpp"
 #include "district.hpp"
 #include "map.hpp"
 #include "position.hpp"
@@ -23,7 +24,6 @@
 
 class CityManager
 {
-    typedef unsigned int district_id_type;
     district_id_type next_district_id = 0;
 
     unsigned int district_count;
