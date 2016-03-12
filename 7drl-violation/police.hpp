@@ -44,7 +44,7 @@ struct CriminalRecord
 class PoliceManager
 {
     static const int officer_reaction_range = 7;
-    static const int spawn_interval = 2; // FIXME: 12;
+    static const int spawn_interval = 8;
 
     typedef int violation_level;
     // I don't need a fast lookup actually cause getting one value
@@ -108,9 +108,16 @@ public:
                        });
     }
 
-    auto check_crime_history(identity_id_type const& id) const
+    auto check_crime_history(identity_id_type id, WorldPosition const& pos)
     {
-        return criminal_records.at(id);
+        auto it = criminal_records.find(id);
+
+        if (it != std::end(criminal_records)) {
+            it->second.last_known_location = pos;
+            return it->second.violation_level;
+        }
+
+        return 0;
     }
 
     auto record_crimes(std::vector<PoliceAlert> const& alerts, std::vector<std::string> & message_log) {

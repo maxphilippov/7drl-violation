@@ -24,7 +24,8 @@ auto run_travels(std::vector<TravelData> const& travels)
     return -1;
 }
 
-auto run_dialogs(MapSize const& screen_size, std::vector<DialogData> const& dialogs)
+auto run_dialogs(MapSize const& screen_size,
+                 std::vector<DialogData> const& dialogs)
 {
 
     for(auto const& d: dialogs)

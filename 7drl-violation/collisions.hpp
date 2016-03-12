@@ -15,7 +15,6 @@
 #include <map>
 
 #include "map.hpp"
-#include "dialog.hpp"
 #include "interaction_types.hpp"
 #include "position.hpp"
 #include "city.hpp"

@@ -17,23 +17,49 @@
 #include "interaction_types.hpp"
 #include "player_commands.hpp"
 
+#include "police.hpp"
 #include "city.hpp"
 #include "time.hpp"
 
+auto bar_interaction()
+{
+    auto root = DialogNode{
+        "Bar is empty, no shady figures around", {}
+    };
+
+    return root;
+}
+
 // Constant declarations
-auto police_officer_interaction()
+auto police_officer_interaction(WorldPosition const& location,
+                                IDData const& id,
+                                PoliceManager & police)
 {
     auto root = DialogNode {
         "Ma'am, can I check your id, please?",
         {
             {
                 "Cooperate", {
-                    "Thank you, this might take a moment", {}
+                    "Thank you, this might take a moment, don't walk too far away", {},
+                    [&location, &police, &id]() {
+                        police.check_crime_history(id.id, location);
+                        // OK, cool, what's next?
+                    }
                 },
             },
             {
                 "Refuse", {
-                    "Ma'am, you're acting very suspicious", {}
+                    "Ma'am, you're acting very suspicious. I think I got to take you back to police station\n<he gets wristbands>",
+                    {
+                        { "Punch him back", {
+                            "<You stunned poor guy>", {}
+                        } },
+                        { "Punch him back (excessive)", {
+                            "<You killed poor guy>", {}
+                        } },
+                        { "Run away", {} },
+                        { "Run away on steroids", {} }
+                    }
                 },
             }
         }, {}
