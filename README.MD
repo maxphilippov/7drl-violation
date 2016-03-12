@@ -4,7 +4,7 @@ My entry for [7DRL 2016 competition](http://7drl.org).
 
 Coffee-break almost-zero-combat roguelike about an android maid accused in murder of her master. Get a fake ID, escape the city on a train, don't get caught.
 
-Had to dust off my C++ skills (sorry, no makefile), picked `ncurses` (OS X) and `pdcurses` (Windows) for drawing. I used VS 2015 (free version) and XCode to build this, didn't include project files, but it should be pretty straightforward.
+Had to dust off my C++ skills (sorry, no makefile), picked `ncurses` (OS X) and `pdcurses` (Windows) for drawing. I used VS 2015 (free version) and XCode to build this, didn't include project files, but it should be pretty straightforward. Oh, yeah, and it's C++14.
 
 For the sake of history this repo should have tag `7drl` for the last commit I managed to push before the deadline.
 
@@ -60,10 +60,9 @@ Attend train
 
 Just be present at the station on time.
 
----
 
-Gameplay mechanics
----
+Gameplay
+===
 
 #### Paying for stuff
 
@@ -123,7 +122,7 @@ Major law violations result in full ID check which in case of our hero result in
 
 ####Humans vs androids
 
-Androids are much stronger and capable of comlicated computations. That means whenever an idividual is showing an exessive muscular force it means he's definitely an android.
+Androids are much stronger and capable of complicated computations. That means whenever an idividual is showing an exessive muscular force it means he's definitely an android.
 
 Ex: If a police officer is checking your ID and he sees you're registered as a human you'd better not use any "superpowers" in case you need to run away cause that's gonna be a serious law violation.
 
@@ -135,7 +134,7 @@ You can be registered as a human or an android. If you identity mismatch that's 
 
 ####Charging
 
-Your batteries constantly recharge. You got to use illegal repair stations (or legal if you have android ID card and only for charges, otherwise personnel might call a police).
+Your batteries constantly discharge. You got to use illegal repair stations (or legal if you have android ID card and only for charges, otherwise personnel might call a police).
 
 ####Fights with police
 
