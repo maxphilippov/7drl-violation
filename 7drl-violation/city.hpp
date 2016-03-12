@@ -30,7 +30,7 @@ class CityManager
 
     std::unordered_map<district_id_type, DistrictData> used_districts;
 
-    std::unordered_multimap<int, int> district_paths;
+    std::unordered_multimap<district_id_type, district_id_type> district_paths;
 
     MapSize size;
 
@@ -53,6 +53,18 @@ public:
     size{ size }
     {
         used_districts.reserve(district_count);
+        // FIXME: Generate paths and make bidirectional
+        district_paths = {
+            { 0, 1 },
+            { 0, 2 },
+            { 0, 3 },
+            { 1, 2 },
+            { 1, 3 },
+            { 1, 0 },
+            { 2, 1 },
+            { 2, 0 },
+            { 3, 0 }
+        };
     }
 
     const auto& bounds() const
@@ -76,9 +88,18 @@ public:
         return get(Position{ x, y });
     }
 
-    const auto get_neighbour_districts(int id)
+    const auto get_neighbour_districts(district_id_type id)
     {
-        auto n = std::vector<int>();
+        auto n = std::vector<district_id_type>();
+
+        auto paths = district_paths.equal_range(id);
+
+        std::transform(paths.first,
+                       paths.second,
+                       std::begin(n),
+                       [](auto const& p) {
+                           return p.second;
+                       });
     }
 
     auto change_district(district_id_type id)

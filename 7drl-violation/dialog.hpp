@@ -15,6 +15,7 @@
 #include "id.hpp"
 #include "interaction_types.hpp"
 #include "player_commands.hpp"
+#include "district.hpp"
 #include "time.hpp"
 
 // Constant declarations

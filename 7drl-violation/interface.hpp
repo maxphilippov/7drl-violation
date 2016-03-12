@@ -34,11 +34,11 @@ void render_log(MapSize const& screen, std::vector<std::string> const& message_l
     if (!message_log.empty()) {
         auto height = 7;
         auto y_offset = 2;
-//        const auto b = Bounds{
-//            0, screen.height + y_offset,
-//            screen.width, screen.height
-//        };
-//        const auto w = WindowHandler{ b };
+        //        const auto b = Bounds{
+        //            0, screen.height + y_offset,
+        //            screen.width, screen.height
+        //        };
+        //        const auto w = WindowHandler{ b };
 
         auto end = std::crbegin(message_log) + height;
 
@@ -96,27 +96,27 @@ void print_node(WINDOW * w, DialogNode const& d, int selected_node = 0)
     switch(choice) {
         case 'j':
             if (replies_count != 0) {
-            selected_node += 1;
-            if (selected_node >= d.replies.size()) {
-                selected_node = 0;
-            }
+                selected_node += 1;
+                if (selected_node >= d.replies.size()) {
+                    selected_node = 0;
+                }
             }
             print_node(w, d, selected_node);
             break;
         case 'k':
-                if (replies_count != 0) {
-                    selected_node -= 1;
-                    if (selected_node < 0) {
-                        selected_node = replies_count - 1;
-                    }
+            if (replies_count != 0) {
+                selected_node -= 1;
+                if (selected_node < 0) {
+                    selected_node = replies_count - 1;
                 }
+            }
             print_node(w, d, selected_node);
             break;
         case ' ':
             if (replies_count != 0) {
                 auto next_node = d.replies.at(selected_node).second;
                 next_node.action();
-                if (!next_node.message.empty()) {
+                if (!(next_node.message.empty() && next_node.replies.empty())) {
                     print_node(w, next_node);
                 }
             }
@@ -131,7 +131,7 @@ void render_dialog(MapSize const& screen, DialogNode const& root)
 {
     const auto b = Bounds{ 0, screen.height, screen.width, screen.height };
     const auto w = WindowHandler{ b };
-
+    
     print_node(w.raw(), root);
 }
 
