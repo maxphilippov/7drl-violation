@@ -43,7 +43,7 @@ struct CriminalRecord
 
 class PoliceManager
 {
-    static const int officer_reaction_range = 7;
+    static const int officer_reaction_range = 7 * 7;
     static const int spawn_interval = 8;
 
     typedef int violation_level;
@@ -96,8 +96,12 @@ public:
 
         std::remove_if(std::begin(cops_on_the_street),
                        std::end(cops_on_the_street),
-                       [&collisions] (auto i) {
-                           const auto v = Velocity{
+                       [&collisions, &player] (auto i) {
+                           auto p = collisions.get_position(i);
+                           if (!p.first) return true;
+
+                           auto vision = collisions.check_vision(i, player, officer_reaction_range);
+                           const auto v = vision ? towards(p.second, player ) : Velocity{
                                generate_random_int(-1, 1),
                                generate_random_int(-1, 1)
                            };

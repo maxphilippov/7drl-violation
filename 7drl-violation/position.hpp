@@ -8,11 +8,47 @@
 #ifndef position_h
 #define position_h
 
+#include <algorithm>
+#include <vector>
+
+// By some dude on stackoverflow
+template <typename T> int sgn(T val) {
+    return (T(0) < val) - (val < T(0));
+}
+
 struct Position
 {
     int x;
     int y;
 };
+
+std::vector<Position> draw_line(Position const& from, Position const& to)
+{
+    auto dx = from.x - to.x;
+    auto dy = from.y - to.y;
+    // Length excluding from and to
+    auto length = std::max(std::abs(dx), std::abs(dy)) - 1;
+    if (length > 0) {
+
+        auto midx = static_cast<float>(std::abs(dx) / 2);
+        auto midy = static_cast<float>(std::abs(dy) / 2);
+
+        auto mid_point = Position {
+            std::min(from.x, to.x) + static_cast<int>(std::round(midx)),
+            std::min(from.y, to.y) + static_cast<int>(std::round(midy))
+        };
+
+        auto first_half = draw_line(from, mid_point);
+        auto second_half = draw_line(mid_point, to);
+
+        // Bjarne forgive me, I'm so bad at this
+        auto line = std::vector<Position>(first_half);
+        line.insert(std::end(line), std::begin(second_half), std::end(second_half));
+
+        return line;
+    }
+    return {to};
+}
 
 auto squared_distance(Position const& p1, Position const& p2)
 {
@@ -86,11 +122,6 @@ struct Velocity
     int x;
     int y;
 };
-
-// By some dude on stackoverflow
-template <typename T> int sgn(T val) {
-    return (T(0) < val) - (val < T(0));
-}
 
 auto towards(Position const& a, Position const& b) {
     return Velocity {

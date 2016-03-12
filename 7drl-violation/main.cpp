@@ -11,6 +11,8 @@
 #include <vector>
 #include <unordered_set>
 
+#include <iostream>
+
 #include <stdlib.h>
 
 #include "curses.hpp"
@@ -292,10 +294,11 @@ private:
 };
 
 int main(int argc, const char * argv[]) {
+
     // FIXME: Reduce screen size to 20, 20 instead of any kind of vision control
     Game g(80, 20);
-    
+
     g.run();
-    
+
     return 0;
 }

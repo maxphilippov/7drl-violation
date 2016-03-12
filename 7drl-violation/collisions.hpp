@@ -167,7 +167,7 @@ public:
         return found;
     }
 
-    auto get_position(physical_object_id_type id)
+    auto get_position(physical_object_id_type id) const
     {
         auto it = objects.find(id);
         auto r = std::pair<bool, Position>{ false, Position {} };
@@ -176,6 +176,27 @@ public:
             r.second = it->second.pos;
         }
         return r;
+    }
+
+    auto check_cells_vision() const
+    {
+        
+    }
+
+    auto check_vision(physical_object_id_type id, Position const& pos, int sqr_max_range) const
+    {
+        auto const& pair = get_position(id);
+        if (pair.first) {
+            auto distance = squared_distance(pair.second, pos);
+
+            if (distance > sqr_max_range) {
+                return false;
+            }
+            auto line = draw_line(pair.second, pos);
+
+            return true;
+        }
+        return false;
     }
 
     auto add_moving_entity(Position pos, Velocity vel = Velocity{0, 0})
