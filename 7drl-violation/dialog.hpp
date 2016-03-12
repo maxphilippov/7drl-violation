@@ -39,6 +39,30 @@ auto police_officer_interaction()
     return root;
 }
 
+auto station_travel_dialog(WorldPosition const& location,
+                           IDData const& data,
+                           PlayerInput & input,
+                           int turn_counter)
+{
+    auto root = DialogNode {
+        "", {
+            {
+                "Purchase ticket",
+                {
+                    "Purchasing",
+                    {},
+                    [&input, &location]() {
+                        input.start_id_check(location);
+                        input.travel(1);
+                    }
+                }
+            }
+        }
+    };
+
+    return root;
+}
+
 auto phone_user_interface(WorldPosition const& location,
                           IDData const& data,
                           PlayerInput & input,
@@ -46,12 +70,36 @@ auto phone_user_interface(WorldPosition const& location,
 {
     std::ostringstream ss;
 
+    ss.precision(1);
+
     ss << turns_to_hours(turn_counter) << " hours passed.";
 
     ss << "You're under id, " << data.name;
 
+    auto travel_options = DialogNode::Replies{};
+
     auto root = DialogNode {
         ss.str(), {
+            {
+                "Start ID check", {
+                    "You're about to submit your id for checking",
+                    {
+                        {
+                            "Submit", {
+                                "",
+                                {},
+                                [&input, &location]() { input.start_id_check(location); }
+                            }
+                        },
+                        {
+                            "Abort", {
+                                "",
+                                {}
+                            }
+                        }
+                    }
+                }
+            },
             {
                 "Order tickets", {
                     "Ordering tickets",
@@ -63,11 +111,7 @@ auto phone_user_interface(WorldPosition const& location,
                 "Call police", {}
             },
             {
-                "Travel", {
-                    "Initializing superflight feature",
-                    {},
-                    [&input, &location]() { input.travel(1); }
-                }
+                "Travel", station_travel_dialog(location, data, input, turn_counter)
             },
             {
                 "Quit", {}

@@ -13,7 +13,7 @@
 #include <iterator>
 #include <vector>
 #include <unordered_map>
-
+#include <random>
 
 #include "district.hpp"
 #include "map.hpp"
@@ -23,9 +23,12 @@
 
 class CityManager
 {
-    int district_count;
+    typedef unsigned int district_id_type;
+    district_id_type next_district_id = 0;
 
-    std::vector<District> used_districts;
+    unsigned int district_count;
+
+    std::unordered_map<district_id_type, DistrictData> used_districts;
 
     std::unordered_multimap<int, int> district_paths;
 
@@ -34,33 +37,15 @@ class CityManager
     // Current district map
     MapCells district_map;
 
-    void add_district()
+    auto add_district(int seed)
     {
-        auto distr = District{
-            static_cast<int>(used_districts.size()),
-            0,
-            20,
-            50,
-            6,
-            12
+        auto id = next_district_id;
+        auto distr = DistrictData{
+            seed
         };
-        used_districts.push_back(distr);
+        used_districts.insert({id, distr});
         district_count -= 1;
-    }
-
-    void thrash_district(int id)
-    {
-        auto d = std::find_if(std::begin(used_districts),
-                              std::end(used_districts),
-                              [id](auto const& d)->bool { return d.get_data().id == id; });
-        if (d != std::end(used_districts)) {
-            used_districts.erase(d);
-            district_count += 1;
-        }
-    }
-
-    void generate_districts()
-    {
+        ++next_district_id;
     }
 public:
     CityManager(MapSize size) :
@@ -96,9 +81,22 @@ public:
         auto n = std::vector<int>();
     }
 
-    WorldPosition change_district(int id)
+    auto change_district(district_id_type id)
     {
-        district_map = generate(std::chrono::system_clock::now().time_since_epoch().count(), size);
+        auto it = used_districts.find(id);
+
+        std::random_device rd{};
+        auto seed = rd() * id;
+        if (it != std::end(used_districts))
+        {
+            seed = it->second.seed;
+        }
+        else
+        {
+            add_district(seed);
+        }
+
+        district_map = generate(seed, size);
         const auto player = WorldPosition { id, { 0, 0 } };
 
         return player;

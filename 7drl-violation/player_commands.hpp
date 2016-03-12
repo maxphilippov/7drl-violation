@@ -46,6 +46,12 @@ public:
         return balance;
     }
 
+    auto start_id_check(WorldPosition const& pos)
+    {
+        auto id = items.get_id();
+        time.add_id_check(id, pos);
+    }
+
     auto purchase_fake_id() {
         // FIXME: Change price based on id type
         auto balance = pay_anonymously(3000);

@@ -86,8 +86,7 @@ void print_node(WINDOW * w, DialogNode const& d, int selected_node = 0)
         ++idx;
     }
 
-    mvwprintw(w,
-              10, x_pos,
+    mvwprintw(w, 15, x_pos,
               (replies_count != 0) ?
               "j, k - pick line, <spacebar> - confirm" :
               "<Press spacebar to continue>");
@@ -117,7 +116,9 @@ void print_node(WINDOW * w, DialogNode const& d, int selected_node = 0)
             if (replies_count != 0) {
                 auto next_node = d.replies.at(selected_node).second;
                 next_node.action();
-                print_node(w, next_node);
+                if (!next_node.message.empty()) {
+                    print_node(w, next_node);
+                }
             }
             break;
         default:

@@ -27,12 +27,30 @@ class CrowdManager
     std::vector<Position> crowd_centers;
 
     unsigned long crowds_limit = 20;
+
+    auto spawn_crowd(Bounds const& inside, MapCells const& map, Position const& pos)
+    {
+        auto idx = get_map_position(map, size, pos);
+
+        crowds_map.at(idx) = MapTile::Crowd;
+
+        for(auto i = 0; i < 5; ++i) {
+            auto x = generate_random_int(-2, 2);
+            auto y = generate_random_int(-2, 2);
+            idx = get_map_position(map, size, Position{ pos.x + x, pos.y + y });
+
+            auto &tile = crowds_map.at(idx);
+            if (tile != MapTile::Crowd) {
+                crowds_map.at(idx) = MapTile::Crowd;
+            }
+        }
+    }
 public:
     CrowdManager(MapSize size) :
     size(size),
     crowds_map(size.width * size.height) {}
     
-    void resize(MapSize newsize)
+    auto resize(MapSize const& newsize)
     {
         size = newsize;
         crowds_map.clear();
@@ -42,12 +60,16 @@ public:
                       [](auto& v) { v = MapTile::Empty; });
     }
 
-    void update(Bounds const& simulation_bounds, MapCells const& map, int turn_count)
+    auto update(Bounds const& simulation_bounds, MapCells const& map, int turn_count)
     {
         if (turn_count % spawn_interval == 0) {
             // FIXME:
             srand(turn_count * simulation_bounds.maxx);
-            auto center = Position{ rand() % size.width, rand() % size.height };
+
+            auto center = Position{
+                generate_random_int(0, size.width),
+                generate_random_int(0, size.height)
+            };
 
             crowd_centers.push_back(center);
 
@@ -62,21 +84,6 @@ public:
     auto const& map() const
     {
         return crowds_map;
-    }
-private:
-    void spawn_crowd(Bounds const& inside, MapCells const& map, Position const& pos)
-    {
-        auto idx = get_map_position(map, size, pos);
-
-        crowds_map.at(idx) = MapTile::Crowd;
-
-        for(auto i = 0; i < 5; ++i) {
-            auto x = generate_random_int(-2, 2);
-            auto y = generate_random_int(-2, 2);
-            idx = get_map_position(map, size, Position{ pos.x + x, pos.y + y });
-
-            crowds_map.at(idx) = MapTile::Crowd;
-        }
     }
 };
 

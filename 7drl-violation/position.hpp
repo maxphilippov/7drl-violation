@@ -16,7 +16,7 @@ struct Position
 
 struct WorldPosition
 {
-    int district_id;
+    unsigned int district_id;
     Position pos;
 };
 

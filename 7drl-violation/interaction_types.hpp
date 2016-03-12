@@ -18,7 +18,7 @@
 struct DialogNode
 {
     typedef std::vector<std::pair<std::string, DialogNode>> Replies;
-    std::string message = "Nothing happened";
+    std::string message;
     Replies replies;
     std::function<void()> action = []() {};
 };
@@ -39,5 +39,24 @@ struct PoliceAlert
     WorldPosition pos;
     int violation_level;
 };
+
+namespace police_alerts
+{
+
+auto purchase_balance_alert(IDData::id_type id, WorldPosition const& pos)
+{
+    return PoliceAlert {
+        id, pos, 3
+    };
+}
+
+auto attempt_to_escape(IDData::id_type id, WorldPosition const& pos)
+{
+    return PoliceAlert {
+        id, pos, 20
+    };
+}
+
+}
 
 #endif /* interaction_types_h */

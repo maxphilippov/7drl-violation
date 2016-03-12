@@ -91,26 +91,23 @@ public:
     
     void update(std::vector<PoliceAlert> & police_alerts)
     {
-        if (purchases_checks.size() > 0) {
+        using namespace police_alerts;
+        if (!purchases_checks.empty()) {
             auto job = purchases_checks.front();
             while(job.finish_by_turn == turn_counter) {
                 purchases_checks.pop();
                 if (job.data.balance - job.price < 0) {
-                    police_alerts.push_back(PoliceAlert {
-                        job.data.id,
-                        job.pos,
-                        // FIXME: Violation level
-                        3
-                    });
+                    police_alerts.push_back(purchase_balance_alert(job.data.id, job.pos));
                 }
                 job = purchases_checks.front();
             }
         }
-        if (ID_checks.size() > 0) {
+        if (!ID_checks.empty()) {
             auto job = ID_checks.front();
             while(job.finish_by_turn == turn_counter) {
                 ID_checks.pop();
                 // FIXME: Check police records
+                police_alerts.push_back(attempt_to_escape(job.data.id, job.pos));
                 job = ID_checks.front();
             }
         }

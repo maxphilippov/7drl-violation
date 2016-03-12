@@ -14,6 +14,7 @@
 
 #include "random.hpp"
 
+#include "time.hpp"
 #include "collisions.hpp"
 #include "id.hpp"
 #include "position.hpp"
@@ -41,7 +42,7 @@ struct CriminalRecord
 
 class PoliceManager
 {
-    static const int spawn_interval = 2; // FIXME: 12;
+    static const int spawn_interval = 12;
 
     typedef int violation_level;
     typedef IDData::id_type id_name;
@@ -65,6 +66,8 @@ public:
                 CollisionManager& collisions,
                 int turn_count)
     {
+        auto alert_mode = late_hours(turn_count);
+
         for(auto const& r: criminal_records) {
             // Decide which district holds the most amount of criminals
         }
@@ -89,15 +92,13 @@ public:
             on_patrol_mission.push_back(mission);
         }
 
-        auto random_velocities = std::vector<Velocity>(cops_on_the_street.size());
+//        auto random_velocities = std::vector<Velocity>(cops_on_the_street.size());
 
         for(auto const i: cops_on_the_street) {
-            // FIXME: proper generation
             const auto v = Velocity{
                 generate_random_int(-1, 1),
                 generate_random_int(-1, 1)
             };
-//            const auto v = Velocity{rand() % 3 - 1, rand() % 3 - 1};
             collisions.change_velocity(i, v);
         }
     }

@@ -50,8 +50,8 @@ public:
     // Divide block while it's bigger than smallest_block
     void divide(int seed, MapSize const& smallest_block, int margin = 0)
     {
-        if (bounds.maxx - bounds.minx <= smallest_block.width * 2 ||
-            bounds.maxy - bounds.miny <= smallest_block.height * 2) {
+        if (bounds.maxx - bounds.minx <= smallest_block.width ||
+            bounds.maxy - bounds.miny <= smallest_block.height) {
             return;
         }
 

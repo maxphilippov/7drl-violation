@@ -25,6 +25,7 @@ std::unordered_set<MapTile> unpassable_tiles = {
     MapTile::Wall
 };
 
+// TODO: Add sprite data?
 struct PhysicalData
 {
     typedef unsigned long id_type;
