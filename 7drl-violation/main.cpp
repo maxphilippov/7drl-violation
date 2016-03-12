@@ -158,21 +158,21 @@ public:
                     pos.x + screen_size.height, pos.y + screen_size.height
                 };
 
+                crowds.update(player_interest, city.map(), turn_counter);
+
+                auto crowd_map = crowds.map();
+
+                city.update(player_interest, crowd_map, turn_counter);
+
+                // Produce velocity for movement orders
+                police.update(player.pos, player_interest, collisions, city, turn_counter);
+
                 auto pvel = Velocity{
                     (input == 'l') ? 1 : (input == 'h') ? -1 : 0,
                     (input == 'j') ? 1 : (input == 'k') ? -1 : 0
                 };
 
                 collisions.change_velocity(player_id, pvel);
-
-                // Produce velocity for movement orders
-                police.update(player.pos, player_interest, collisions, turn_counter);
-
-                crowds.update(player_interest, city.map(), turn_counter);
-
-                auto crowd_map = crowds.map();
-
-                city.update(player_interest, crowd_map, turn_counter);
 
                 // Produces collisions information
                 collisions.update(player_interest, city, collisions_info);

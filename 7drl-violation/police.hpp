@@ -16,6 +16,7 @@
 
 #include "basic_types.hpp"
 
+#include "city.hpp"
 #include "time.hpp"
 #include "collisions.hpp"
 #include "position.hpp"
@@ -67,6 +68,7 @@ public:
     void update(Position const& player, // To raycast vision
                 Bounds const& simulation_bounds,
                 CollisionManager& collisions,
+                CityManager const& city,
                 int turn_count)
     {
         auto alert_mode = late_hours(turn_count);
@@ -96,12 +98,15 @@ public:
 
         std::remove_if(std::begin(cops_on_the_street),
                        std::end(cops_on_the_street),
-                       [&collisions, &player] (auto i) {
+                       [&collisions, &player, &city] (auto i) {
                            auto p = collisions.get_position(i);
                            if (!p.first) return true;
 
-                           auto vision = collisions.check_vision(i, player, officer_reaction_range);
-                           const auto v = vision ? towards(p.second, player ) : Velocity{
+                           auto vision = collisions.check_vision(city, i, player, officer_reaction_range);
+                           if (vision) {
+                               auto v =towards(p.second, player);
+                           }
+                           const auto v = vision ? towards(p.second, player) : Velocity{
                                generate_random_int(-1, 1),
                                generate_random_int(-1, 1)
                            };

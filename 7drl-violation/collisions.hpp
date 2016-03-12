@@ -25,6 +25,10 @@ std::unordered_set<MapTile> unpassable_tiles = {
     MapTile::Wall
 };
 
+std::unordered_set<MapTile> obscuring_tiles = {
+    MapTile::Wall, MapTile::Crowd
+};
+
 struct PosVel
 {
     Position pos;
@@ -183,7 +187,10 @@ public:
         
     }
 
-    auto check_vision(physical_object_id_type id, Position const& pos, int sqr_max_range) const
+    auto check_vision(CityManager const& city,
+                      physical_object_id_type id,
+                      Position const& pos,
+                      int sqr_max_range) const
     {
         auto const& pair = get_position(id);
         if (pair.first) {
@@ -194,6 +201,11 @@ public:
             }
             auto line = draw_line(pair.second, pos);
 
+            for(auto const& p: line) {
+                auto tile = city.get(p);
+
+                if(obscuring_tiles.count(tile) !=0 ) return false;
+            }
             return true;
         }
         return false;
