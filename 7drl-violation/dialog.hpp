@@ -14,6 +14,7 @@
 
 #include "basic_types.hpp"
 #include "id.hpp"
+#include "interface.hpp"
 #include "interaction_types.hpp"
 #include "player_commands.hpp"
 
@@ -225,7 +226,13 @@ auto phone_user_interface(WorldPosition const& location,
 auto intro_dialog()
 {
     auto root = DialogNode {
-        "Your master is dead, the blood is on your hands\nHurry up, they are looking for a female android", {}
+        "Your master is dead, the blood is on your hands", {
+            {
+                "<Continue>", {
+                    "Hurry up, they are looking for a female android", {}
+                }
+            }
+        }
     };
 
     return root;
@@ -236,8 +243,8 @@ auto outro_dialog()
     auto root = DialogNode {
         "You slipped away, now you're safe", {
             {
-                "Continue", {
-                    "", {}, []() { /*auto name = prompt("What's your name?");*/ }
+                "<Continue>", {
+                    "", {}, []() { auto name = prompt("What's your name?"); }
                 }
             }
         }
