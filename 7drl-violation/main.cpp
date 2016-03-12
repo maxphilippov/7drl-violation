@@ -245,6 +245,8 @@ public:
             // only if(rewind_to_turn == time.current_turn())
             // --rewind_to_turn
             input = getch();
+            // For simulation testing
+            // input = ' ';
         }
     }
 private:
@@ -294,11 +296,11 @@ private:
 };
 
 int main(int argc, const char * argv[]) {
-
+    
     // FIXME: Reduce screen size to 20, 20 instead of any kind of vision control
     Game g(80, 20);
-
+    
     g.run();
-
+    
     return 0;
 }

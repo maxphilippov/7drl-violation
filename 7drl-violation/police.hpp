@@ -82,8 +82,8 @@ public:
             const auto h = simulation_bounds.maxy - simulation_bounds.miny;
             // spawn new PO near some point of interest
             // FIXME: don't spawn in player vision range
-            const auto x = generate_random_int(simulation_bounds.minx, w);
-            const auto y = generate_random_int(simulation_bounds.miny, h);
+            const auto x = generate_random_int(std::max(simulation_bounds.minx, 0), w);
+            const auto y = generate_random_int(std::max(simulation_bounds.miny, 0), h);
             const auto pos = Position{ x, y };
 
             const auto missionTarget = Position { x + 5, y + 5 };
