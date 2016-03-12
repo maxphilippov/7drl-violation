@@ -107,6 +107,7 @@ public:
     void run()
     {
         std::vector<PoliceAlert> police_alerts;
+        // A vector of travels is pretty stupid
         std::vector<TravelData> travels;
         std::vector<DialogData> dialogs = {{ intro_dialog() }};
 
@@ -121,7 +122,7 @@ public:
         // Random numbers
         police_alerts.reserve(32);
 
-        auto player = city.change_district(0);
+        auto player = city.change_district({}, 0);
 
         player_id = collisions.add_moving_entity(player.pos);
 
@@ -142,6 +143,9 @@ public:
 
             auto turn_counter = time.current_turn();
 
+            auto current_district_id = city.get_current_district_id();
+            auto neighbour_districts = city.get_neighbour_districts(current_district_id);
+
             if (actions.count(input) != 0) {
 
                 auto pos = player.pos;
@@ -150,12 +154,12 @@ public:
                     pos.x + screen_size.height, pos.y + screen_size.height
                 };
 
-                Velocity pVelocity;
-                // should push velocity to CollisionsManager to let it later handle things
-                pVelocity.x = (input == 'l') ? 1 : (input == 'h') ? -1 : 0;
-                pVelocity.y = (input == 'j') ? 1 : (input == 'k') ? -1 : 0;
+                auto pvel = Velocity{
+                    (input == 'l') ? 1 : (input == 'h') ? -1 : 0,
+                    (input == 'j') ? 1 : (input == 'k') ? -1 : 0
+                };
 
-                collisions.change_velocity(player_id, pVelocity);
+                collisions.change_velocity(player_id, pvel);
 
                 // Produce velocity for movement orders
                 police.update(player.pos, player_interest, collisions, turn_counter);
@@ -166,25 +170,24 @@ public:
 
                 city.update(player_interest, crowd_map, turn_counter);
 
-                // Produce interactions list, should be sorted by priority
-                // Like a message from PO is more important than your interaction with civilians
+                // Produces collisions information
                 collisions.update(player_interest, city, collisions_info);
 
-                // TODO: Should probably throw if we can't find a player
+                // FIXME: Should probably throw if we can't find a player,
+                // that would mean there's a mess up in code
                 player.pos = collisions.get_position(player_id).second;
 
                 // Adds interaction for completed jobs and probably creates something
                 // like CityChange with data on what to change in city before next turn
                 time.update(police_alerts);
-
             } else {
                 switch(input) {
                     case '?':
                         render_help();
                         break;
-                        // FIXME: Testing
                     case 't':
-                        use_phone(player, input_manager, turn_counter);
+                        auto pd = phone_user_interface(player, items.get_id(), input_manager, neighbour_districts, turn_counter);
+                        dialogs.push_back({ pd });
                         break;
                 }
             }
@@ -194,6 +197,9 @@ public:
                     dialogs.push_back({
                         police_officer_interaction(player, items.get_id(), police)
                     });
+                    // If we don't break that's gonna turn into a bunch of dialogs
+                    // which actually happens in parallel
+                    break;
                 }
             }
 
@@ -208,13 +214,13 @@ public:
             auto next_district = run_travels(travels);
 
             if (next_district != -1) {
-                player = city.change_district(next_district);
+                player = city.change_district(player, next_district);
                 auto new_size = city.bounds();
                 crowds.resize(new_size);
                 collisions.restart();
                 player_id = collisions.add_moving_entity(player.pos);
                 police.restart();
-                // FIXME: Change time
+                // FIXME: Change time constant
                 time.skip_time({ 1.5f });
             }
 
@@ -234,11 +240,6 @@ public:
         }
     }
 private:
-    void use_phone(WorldPosition const& location, PlayerInput & input_manager, int turn_counter)
-    {
-        auto dialog = phone_user_interface(location, items.get_id(), input_manager, turn_counter);
-        render_dialog(screen_size, dialog);
-    }
 
     void render(Position const& player, MapSize const& bounds) const
     {

@@ -136,6 +136,11 @@ public:
             }
         }
     }
+
+    auto officers_inside(Bounds const& bounds)
+    {
+        return 0;
+    }
 };
 
 

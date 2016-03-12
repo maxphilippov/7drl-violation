@@ -37,6 +37,8 @@ class CityManager
     // Current district map
     MapCells district_map;
 
+    district_id_type current_district = -1;
+
     auto add_district(int seed)
     {
         auto id = next_district_id;
@@ -88,22 +90,34 @@ public:
         return get(Position{ x, y });
     }
 
-    const auto get_neighbour_districts(district_id_type id)
+    auto get_current_district_id() const
     {
-        auto n = std::vector<district_id_type>();
+        return current_district;
+    }
+
+    auto get_neighbour_districts(district_id_type id)
+    {
+        auto n = std::vector<district_id_type>(district_paths.size());
 
         auto paths = district_paths.equal_range(id);
 
-        std::transform(paths.first,
-                       paths.second,
-                       std::begin(n),
-                       [](auto const& p) {
-                           return p.second;
-                       });
+        auto it = std::transform(paths.first,
+                                 paths.second,
+                                 std::begin(n),
+                                 [](auto const& p) {
+                                     return p.second;
+                                 });
+
+        n.resize(std::distance(std::begin(n), it));
+
+        return n;
     }
 
-    auto change_district(district_id_type id)
+    auto change_district(WorldPosition const& location, district_id_type id)
     {
+        if (current_district == id) {
+            return location;
+        }
         auto it = used_districts.find(id);
 
         std::random_device rd{};

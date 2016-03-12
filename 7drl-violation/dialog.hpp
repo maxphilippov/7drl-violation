@@ -30,6 +30,53 @@ auto bar_interaction()
     return root;
 }
 
+auto clinic_interaction()
+{
+    auto root = DialogNode{
+        "You walk down the hall and see a bloodpack lying right under your feet", {
+            {
+                "Steal a bloodpack", {
+                    "You've acquired a bloodpack, useful to fake injuries", {}
+                }
+            }
+        }
+    };
+
+    return root;
+}
+
+auto repair_station_interaction(IDData const& id)
+{
+    auto root = DialogNode{
+        "You are warmly welcomed", {
+            {
+                "Pay for recharge", {}
+            },
+            {
+                "Pay for repair", {}
+            }
+        }
+    };
+
+    return root;
+}
+
+auto cantina_interaction(IDData const& id)
+{
+    auto root = DialogNode{
+        "You are warmly welcomed", {
+            {
+                "Order a meal", {}
+            },
+            {
+                "Chat with people", {}
+            }
+        }
+    };
+
+    return root;
+}
+
 // Constant declarations
 auto police_officer_interaction(WorldPosition const& location,
                                 IDData const& id,
@@ -68,7 +115,7 @@ auto police_officer_interaction(WorldPosition const& location,
     return root;
 }
 
-auto build_travel_options(WorldPosition const& location,
+auto travel_options(WorldPosition const& location,
                           IDData const& data,
                           PlayerInput & input,
                           std::vector<district_id_type> const& ids,
@@ -94,10 +141,11 @@ auto build_travel_options(WorldPosition const& location,
 auto station_travel_dialog(WorldPosition const& location,
                            IDData const& data,
                            PlayerInput & input,
+                           std::vector<district_id_type> neighbour_districts,
                            int turn_counter)
 {
     auto root = DialogNode {
-        "", build_travel_options(location, data, input, {0, 1, 2}, turn_counter)
+        "", travel_options(location, data, input, neighbour_districts, turn_counter)
     };
 
     return root;
@@ -106,6 +154,7 @@ auto station_travel_dialog(WorldPosition const& location,
 auto phone_user_interface(WorldPosition const& location,
                           IDData const& data,
                           PlayerInput & input,
+                          std::vector<district_id_type> neighbour_districts,
                           int turn_counter)
 {
     std::ostringstream ss;
@@ -151,7 +200,7 @@ auto phone_user_interface(WorldPosition const& location,
                 "Call police", {}
             },
             {
-                "Travel", station_travel_dialog(location, data, input, turn_counter)
+                "Travel", station_travel_dialog(location, data, input, neighbour_districts, turn_counter)
             },
             {
                 "Quit", {}
