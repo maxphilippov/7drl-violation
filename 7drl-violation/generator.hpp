@@ -151,6 +151,17 @@ struct MapData
     std::vector<BuildingType> buildings_areas;
 };
 
+auto building_type_generator(std::mt19937 & gen)
+{
+    auto lower = static_cast<int>(MapTile::Bar);
+    auto higher = static_cast<int>(MapTile::Repairs);
+
+//    std::discrete_distribution<> d{30, 30, 30};
+    std::uniform_int_distribution<> d{lower, higher};
+    auto val = d(gen);
+    return static_cast<MapTile>(val);
+}
+
 auto generate(int seed, MapSize const& size) {
     auto level_bounds = Bounds{ 0, 0, size.width, size.height };
 
@@ -186,10 +197,29 @@ auto generate(int seed, MapSize const& size) {
 
     auto random_tiles = std::vector<MapTile>(building_bounds.size());
 
-    std::random_shuffle(std::begin(random_tiles), std::end(random_tiles));
+    std::mt19937 gen(seed);
+    std::generate(std::begin(random_tiles),
+                  std::end(random_tiles),
+                  std::bind(building_type_generator, gen));
 
-    fill_bounds(r, level_bounds, building_bounds, MapTile::Empty, MapTile::Wall);
+    std::random_shuffle(std::begin(building_bounds), std::end(building_bounds));
 
+    {
+        auto iter = std::begin(random_tiles);
+        auto end_iter = std::cend(random_tiles);
+        auto last_symbol = MapTile::Empty;
+        auto b_iter = std::begin(building_bounds);
+        auto last_b_begin = b_iter;
+        for(; iter != end_iter; ++iter, ++b_iter ) {
+            if (last_symbol != *iter || iter + 1 == end_iter) {
+                auto v = std::vector<Bounds>(last_b_begin, b_iter);
+                fill_bounds(r, level_bounds, v, last_symbol, MapTile::Wall);
+                last_b_begin = b_iter;
+                last_symbol = *iter;
+            }
+        }
+
+    }
     auto data = MapData
     {
         r

@@ -61,6 +61,7 @@ public:
     {
         cops_on_the_street.clear();
         on_patrol_mission.clear();
+        // FIXME: Need to spawn initial troops
     }
 
     void update(Position const& player, // To raycast vision
@@ -75,13 +76,12 @@ public:
         }
 
         if (turn_count % spawn_interval == 0) {
-            srand(static_cast<unsigned int>(time(0) * turn_count));
             const auto w = simulation_bounds.maxx - simulation_bounds.minx;
             const auto h = simulation_bounds.maxy - simulation_bounds.miny;
             // spawn new PO near some point of interest
             // FIXME: don't spawn in player vision range
-            const auto x = simulation_bounds.minx + rand() % w;
-            const auto y = simulation_bounds.miny + rand() % h;
+            const auto x = generate_random_int(simulation_bounds.minx, w);
+            const auto y = generate_random_int(simulation_bounds.miny, h);
             const auto pos = Position{ x, y };
 
             const auto missionTarget = Position { x + 5, y + 5 };

@@ -20,7 +20,7 @@
 
 class CrowdManager
 {
-    static const auto spawn_interval = 3;
+    static const auto spawn_interval = 12;
     MapSize size;
     MapCells crowds_map;
 
@@ -62,10 +62,7 @@ public:
 
     auto update(Bounds const& simulation_bounds, MapCells const& map, int turn_count)
     {
-        if (turn_count % spawn_interval == 0) {
-            // FIXME:
-            srand(turn_count * simulation_bounds.maxx);
-
+        if (turn_count % spawn_interval == 0 && crowd_centers.size() < crowds_limit) {
             auto center = Position{
                 generate_random_int(0, size.width),
                 generate_random_int(0, size.height)
