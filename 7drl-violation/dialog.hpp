@@ -25,12 +25,12 @@ auto police_officer_interaction()
         {
             {
                 "Cooperate", {
-                    "Thank you, this might take a moment", {}, {}
+                    "Thank you, this might take a moment", {}
                 },
             },
             {
                 "Refuse", {
-                    "Ma'am, you're acting very suspicious", {}, {}
+                    "Ma'am, you're acting very suspicious", {}
                 },
             }
         }, {}

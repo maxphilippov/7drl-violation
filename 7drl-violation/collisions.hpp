@@ -14,6 +14,7 @@
 #include <unordered_map>
 
 #include "map.hpp"
+#include "dialog.hpp"
 #include "interaction_types.hpp"
 #include "position.hpp"
 #include "city.hpp"
@@ -26,7 +27,7 @@ std::unordered_set<MapTile> unpassable_tiles = {
 
 struct PhysicalData
 {
-    typedef unsigned int id_type;
+    typedef unsigned long id_type;
     std::vector<Position> positions;
     std::vector<Velocity> velocities;
     std::vector<id_type> ids;
@@ -101,6 +102,12 @@ struct PhysicalData
     }
 };
 
+struct ActorCollisionInfo
+{
+    PhysicalData::id_type first;
+    PhysicalData::id_type second;
+};
+
 class CollisionManager
 {
     PhysicalData all_data;
@@ -112,12 +119,12 @@ public:
 
     void update(Bounds const& simulation_bounds,
                 CityManager const& city,
-                std::vector<DialogData>& dialogs)
+                std::vector<ActorCollisionInfo>& collisions)
     {
         auto& velocities = all_data.velocities;
         auto& positions = all_data.positions;
 
-        auto level_bounds = city.bounds();
+        auto const& level_bounds = city.bounds();
         // Update all entities positions (actually should update just nearest to the player)
         auto new_positions = std::vector<Position>(positions.size());
 
@@ -129,7 +136,11 @@ public:
                        e_positions,
                        std::begin(velocities),
                        std::begin(new_positions),
-                       [this, &level_bounds, &city, &b_positions, &e_positions](auto const& p, auto const& v) {
+                       [&simulation_bounds, &level_bounds, &city, &b_positions, &e_positions, &collisions](auto const& p, auto const& v) {
+                           if (!simulation_bounds.contains(p)) {
+                               // TODO: Register that object for removal
+                               return p;
+                           }
                            auto const& new_pos = Position{
                                std::max(0, std::min(p.x + v.x, level_bounds.width - 1)),
                                std::max(0, std::min(p.y + v.y, level_bounds.height - 1))
@@ -145,18 +156,13 @@ public:
                                                   });
 
                            if (it != e_positions) {
+                               // TODO: We push information on actors who collided
+                               collisions.push_back({100, 100});
                                return p;
                            }
 
                            return (unpassable_tiles.count(tile) == 0) ? new_pos : p;
                        });
-
-        // TODO: Actually check collisions
-        // For collision checking we might need to sort a vector,
-        // that makes the whole id thing look bad
-        // Looks like I gotta change how data is stored,
-        // Cause we'll need to check object priorities when two entities try to enter same cell
-        // Police officer > Player > Others
 
         std::swap(positions, new_positions);
 
@@ -167,8 +173,6 @@ public:
                        [](auto const& v) {
                            return Velocity{ 0, 0 };
                        });
-
-        // TODO: On every collision generate an interaction
     }
 
     bool raycast(MapCells const& cells, Position const& from, Position const& to) const

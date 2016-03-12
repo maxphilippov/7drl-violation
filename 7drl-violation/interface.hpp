@@ -13,6 +13,7 @@
 #include <string>
 
 #include "dialog.hpp"
+#include "help_message.hpp"
 
 class WindowHandler
 {

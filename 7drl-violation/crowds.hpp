@@ -12,6 +12,8 @@
 #include <iterator>
 #include <vector>
 
+#include "random.hpp"
+
 #include "city.hpp"
 #include "map.hpp"
 #include "position.hpp"
@@ -23,6 +25,8 @@ class CrowdManager
     MapCells crowds_map;
 
     std::vector<Position> crowd_centers;
+
+    unsigned long crowds_limit = 20;
 public:
     CrowdManager(MapSize size) :
     size(size),
@@ -31,6 +35,7 @@ public:
     void resize(MapSize newsize)
     {
         size = newsize;
+        crowds_map.clear();
         crowds_map.resize(size.width * size.height);
         std::for_each(std::begin(crowds_map),
                       std::end(crowds_map),
@@ -47,7 +52,9 @@ public:
             crowd_centers.push_back(center);
 
             for(auto const& c: crowd_centers) {
-                spawn_crowd(map, c);
+                if (simulation_bounds.contains(c)) {
+                    spawn_crowd(simulation_bounds, map, c);
+                }
             }
         }
     }
@@ -57,11 +64,19 @@ public:
         return crowds_map;
     }
 private:
-    void spawn_crowd(MapCells const& map, Position const& pos)
+    void spawn_crowd(Bounds const& inside, MapCells const& map, Position const& pos)
     {
         auto idx = get_map_position(map, size, pos);
 
         crowds_map.at(idx) = MapTile::Crowd;
+
+        for(auto i = 0; i < 5; ++i) {
+            auto x = generate_random_int(-2, 2);
+            auto y = generate_random_int(-2, 2);
+            idx = get_map_position(map, size, Position{ pos.x + x, pos.y + y });
+
+            crowds_map.at(idx) = MapTile::Crowd;
+        }
     }
 };
 

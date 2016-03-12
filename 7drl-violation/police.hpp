@@ -12,6 +12,8 @@
 #include <string>
 #include <vector>
 
+#include "random.hpp"
+
 #include "collisions.hpp"
 #include "id.hpp"
 #include "position.hpp"
@@ -91,8 +93,11 @@ public:
 
         for(auto const i: cops_on_the_street) {
             // FIXME: proper generation
-            srand(i * turn_count);
-            const auto v = Velocity{rand() % 3 - 1, rand() % 3 - 1};
+            const auto v = Velocity{
+                generate_random_int(-1, 1),
+                generate_random_int(-1, 1)
+            };
+//            const auto v = Velocity{rand() % 3 - 1, rand() % 3 - 1};
             collisions.change_velocity(i, v);
         }
     }

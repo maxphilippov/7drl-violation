@@ -34,6 +34,8 @@ struct DistrictData
 {
     int id;
 
+    int seed;
+
     int population;
     int crime_level;
     int law_power;
@@ -47,7 +49,7 @@ class District
 {
     DistrictData data;
 
-    std::array<int, 3> places_count;
+    std::array<unsigned int, 3> places_count;
 
     std::vector<Position> shops;
     std::vector<Position> clinics;
@@ -60,7 +62,7 @@ public:
     data{id, pop, crime_level, law_power, points_of_interest, private_satelites}
     {
         std::random_device rd;
-        auto gen = std::mt19937(rd());
+        auto gen = std::mt19937{rd()};
         // Chance to generate shop / clinic / bar
         auto d = std::discrete_distribution<>({35, 10, 15});
 

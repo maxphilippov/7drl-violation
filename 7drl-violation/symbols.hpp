@@ -16,7 +16,7 @@ typedef std::unordered_map<int, char> CharMap;
 
 namespace symbols
 {
-    const std::unordered_map<MapTile, char> mapTiles = {
+    const std::unordered_map<MapTile, char> map_tiles = {
         { MapTile::Empty, '.' }, // Empty space
         { MapTile::Wall, '#' }, // Wall
         { MapTile::Road, '+' }, // Road
@@ -26,10 +26,10 @@ namespace symbols
 
     const CharMap actors = {
         { 0, '@' }, // Player
-        { 2, 'P' }, // Police officer
-        { 3, 'G' }, // Gangstar
-        { 4, 'D' }, // Android
-        { 5, 'M' }, // Master
+        { 1, 'P' }, // Police officer
+        { 2, 'G' }, // Gangstar
+        { 3, 'D' }, // Android
+        { 4, 'M' }, // Master
     };
 }
 
