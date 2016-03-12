@@ -53,7 +53,7 @@ private:
     const MapSize half_size;
 
     // TODO: Make a separate manager for player input
-    PhysicalData::id_type player_id;
+    physical_object_id_type player_id;
 
     CityManager city;
     CrowdManager crowds;
@@ -158,7 +158,7 @@ public:
                 collisions.change_velocity(player_id, pVelocity);
 
                 // Produce velocity for movement orders
-                police.update(player_interest, collisions, turn_counter);
+                police.update(player.pos, player_interest, collisions, turn_counter);
 
                 crowds.update(player_interest, city.map(), turn_counter);
 
@@ -221,6 +221,7 @@ public:
             dialogs.clear();
             travels.clear();
             police_alerts.clear();
+            collisions_info.clear();
 
             auto elapsed = std::chrono::high_resolution_clock::now() - start;
 
@@ -268,13 +269,12 @@ private:
         attron(COLOR_PAIR(2));
         for(auto const& pos: actor_positions) {
             // TODO: Color hostile actors with red background?
-            // FIXME: Renders an actor under player too
             auto x = pos.x - left;
             auto y = pos.y - top;
             mvaddch(y, x, symbols::actors.at(1));
         }
         attroff(COLOR_PAIR(2));
-
+        
         // Player
         attron(COLOR_PAIR(3));
         mvaddch(half_size.height, half_size.width, symbols::actors.at(0));

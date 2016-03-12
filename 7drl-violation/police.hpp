@@ -18,7 +18,6 @@
 
 #include "time.hpp"
 #include "collisions.hpp"
-#include "id.hpp"
 #include "position.hpp"
 #include "interaction_types.hpp"
 
@@ -26,7 +25,7 @@
 
 struct ActivatedPO
 {
-    PhysicalData::id_type collision_id;
+    physical_object_id_type collision_id;
 };
 
 struct PatrolMission
@@ -38,20 +37,21 @@ struct PatrolMission
 struct CriminalRecord
 {
     WorldPosition last_known_location; // should always be present
-    // BITMASK MB?
+                                       // BITMASK MB?
     int violation_level;
 };
 
 class PoliceManager
 {
-    static const int spawn_interval = 12;
+    static const int officer_reaction_range = 7;
+    static const int spawn_interval = 2; // FIXME: 12;
 
     typedef int violation_level;
     // I don't need a fast lookup actually cause getting one value
     // out of this map is performed only when a PO checks your ID
     std::map<identity_id_type, CriminalRecord> criminal_records;
 
-    std::vector<PhysicalData::id_type> cops_on_the_street;
+    std::vector<physical_object_id_type> cops_on_the_street;
 
     std::vector<PatrolMission> on_patrol_mission;
 
@@ -63,7 +63,8 @@ public:
         on_patrol_mission.clear();
     }
 
-    void update(Bounds const& simulation_bounds,
+    void update(Position const& player, // To raycast vision
+                Bounds const& simulation_bounds,
                 CollisionManager& collisions,
                 int turn_count)
     {
@@ -93,17 +94,20 @@ public:
             on_patrol_mission.push_back(mission);
         }
 
-//        auto random_velocities = std::vector<Velocity>(cops_on_the_street.size());
+        std::remove_if(std::begin(cops_on_the_street),
+                       std::end(cops_on_the_street),
+                       [&collisions] (auto i) {
+                           const auto v = Velocity{
+                               generate_random_int(-1, 1),
+                               generate_random_int(-1, 1)
+                           };
 
-        for(auto const i: cops_on_the_street) {
-            const auto v = Velocity{
-                generate_random_int(-1, 1),
-                generate_random_int(-1, 1)
-            };
-            collisions.change_velocity(i, v);
-        }
+                           // Returns false if entity was disposed
+                           // by collision manager
+                           return !collisions.change_velocity(i, v);
+                       });
     }
-    
+
     auto check_crime_history(identity_id_type const& id) const
     {
         return criminal_records.at(id);

@@ -12,6 +12,7 @@
 #include <iterator>
 #include <vector>
 #include <unordered_map>
+#include <map>
 
 #include "map.hpp"
 #include "dialog.hpp"
@@ -25,155 +26,86 @@ std::unordered_set<MapTile> unpassable_tiles = {
     MapTile::Wall
 };
 
-// TODO: Add sprite data?
-struct PhysicalData
+struct PosVel
 {
-    typedef unsigned long id_type;
-    std::vector<Position> positions;
-    std::vector<Velocity> velocities;
-    std::vector<id_type> ids;
-
-    id_type next_id = 0;
-
-    auto clear()
-    {
-        positions.clear();
-        velocities.clear();
-        ids.clear();
-        next_id = 0;
-    }
-
-    auto add_object(Position pos, Velocity vel)
-    {
-        auto id = next_id;
-
-        ids.push_back(id);
-        positions.push_back(pos);
-        velocities.push_back(vel);
-
-        next_id += 1;
-
-        return id;
-    }
-
-    auto get_position(id_type id) const
-    {
-        auto it = std::find(std::cbegin(ids),
-                            std::cend(ids),
-                            id);
-
-        auto r = std::pair<bool, Position>{ false, Position{} };
-        if (it != std::cend(ids)) {
-            auto idx = it - std::cbegin(ids);
-            auto pos_it = std::cbegin(positions) + idx;
-            r.first = true;
-            r.second = *pos_it;
-
-        }
-        return r;
-    }
-
-    auto change_velocity(id_type id, Velocity vel)
-    {
-        auto it = std::find(std::cbegin(ids),
-                            std::cend(ids),
-                            id);
-
-        if (it != std::cend(ids)) {
-            auto idx = it - std::cbegin(ids);
-
-            velocities.at(idx) = vel;
-        }
-
-        return it != std::cend(ids);
-    }
-
-    void remove_object(id_type id)
-    {
-        auto it = std::find(std::cbegin(ids),
-                            std::cend(ids),
-                            id);
-
-        if(it != std::cend(ids)) {
-            auto idx = it - std::cbegin(ids);
-            positions.erase(std::begin(positions) + idx);
-            velocities.erase(std::begin(velocities) + idx);
-            ids.erase(it);
-        }
-    }
+    Position pos;
+    Velocity vel;
 };
 
 struct ActorCollisionInfo
 {
-    PhysicalData::id_type first;
-    PhysicalData::id_type second;
+    physical_object_id_type first;
+    physical_object_id_type second;
 };
 
 class CollisionManager
 {
-    PhysicalData all_data;
+    typedef std::map<physical_object_id_type, PosVel> ObjectContainer;
+    ObjectContainer objects;
+
+    physical_object_id_type next_id = 0;
 public:
     void restart()
     {
-        all_data.clear();
+        objects.clear();
     }
 
     void update(Bounds const& simulation_bounds,
                 CityManager const& city,
                 std::vector<ActorCollisionInfo>& collisions)
     {
-        auto& velocities = all_data.velocities;
-        auto& positions = all_data.positions;
-
         auto const& level_bounds = city.bounds();
         // Update all entities positions (actually should update just nearest to the player)
-        auto new_positions = std::vector<Position>(positions.size());
+        auto new_objects = objects;
 
-        // To reduce allocations in next transform lambdas
-        auto b_positions = std::cbegin(positions);
-        auto e_positions = std::cend(positions);
+        // Dispose objects outside of bounds
+        {
+            auto begin = std::begin(new_objects);
+            auto end_iter = std::end(new_objects);
 
-        std::transform(b_positions,
-                       e_positions,
-                       std::begin(velocities),
-                       std::begin(new_positions),
-                       [&simulation_bounds, &level_bounds, &city, &b_positions, &e_positions, &collisions](auto const& p, auto const& v) {
-                           if (!simulation_bounds.contains(p)) {
-                               // TODO: Register that object for removal
-                               return p;
-                           }
-                           auto const& new_pos = Position{
-                               std::max(0, std::min(p.x + v.x, level_bounds.width - 1)),
-                               std::max(0, std::min(p.y + v.y, level_bounds.height - 1))
-                           };
+            for(auto iter = begin; iter != end_iter; ) {
+                if (!simulation_bounds.contains(iter->second.pos)) {
+                    new_objects.erase(iter++);
+                } else {
+                    auto const& p = iter->second.pos;
+                    auto const& v = iter->second.vel;
+                    auto new_pos = Position{
+                        std::max(0, std::min(p.x + v.x, level_bounds.width - 1)),
+                        std::max(0, std::min(p.y + v.y, level_bounds.height - 1))
+                    };
 
-                           auto tile = city.get(new_pos);
 
-                           auto it = std::find_if(b_positions,
-                                                  e_positions,
-                                                  [&new_pos](auto const& p) {
-                                                      return new_pos.x == p.x &&
-                                                      new_pos.y == p.y;
-                                                  });
+                    auto tile = city.get(new_pos);
+                    auto collision = (unpassable_tiles.count(tile) == 0);
+                    iter->second.pos = collision ? new_pos : p;
+                    iter->second.vel = Velocity{ 0, 0 };
+                    ++iter;
+                }
+            }
+        }
+        {
+            auto begin = std::begin(new_objects);
+            auto end_iter = std::end(new_objects);
+            for(auto const& kv: new_objects) {
+                auto const& new_pos = kv.second.pos;
+                auto collision_entity = std::find_if(begin, end_iter,
+                                                     [&new_pos](auto const& kv) {
+                                                         auto const &p = kv.second.pos;
+                                                         return p.x == new_pos.x &&
+                                                         p.y == new_pos.y;
+                                                     });
+                if(collision_entity != end_iter && collision_entity->first != kv.first) {
+                    collisions.push_back({
+                        collision_entity->first,
+                        kv.first
+                    });
 
-                           if (it != e_positions) {
-                               // TODO: We push information on actors who collided
-                               collisions.push_back({100, 100});
-                               return p;
-                           }
+                    collision_entity->second.pos = objects.find(collision_entity->first)->second.pos;
+                }
+            }
+        }
 
-                           return (unpassable_tiles.count(tile) == 0) ? new_pos : p;
-                       });
-
-        std::swap(positions, new_positions);
-
-        // TODO: Find a better way to nullify every velocity
-        std::transform(std::begin(velocities),
-                       std::end(velocities),
-                       std::begin(velocities),
-                       [](auto const& v) {
-                           return Velocity{ 0, 0 };
-                       });
+        objects = new_objects;
     }
 
     bool raycast(MapCells const& cells, Position const& from, Position const& to) const
@@ -223,32 +155,43 @@ public:
 
     // Return false if there's no such object registered for collisions
     // which means we disposed it already
-    bool change_velocity(PhysicalData::id_type id, Velocity vel)
+    auto change_velocity(physical_object_id_type id, Velocity vel)
     {
-        return all_data.change_velocity(id, vel);
+        auto it = objects.find(id);
+
+        auto found = it != std::end(objects);
+
+        if (found) {
+            it->second.vel = vel;
+        }
+
+        return found;
     }
 
-    auto get_position(PhysicalData::id_type id)
+    auto get_position(physical_object_id_type id)
     {
-        return all_data.get_position(id);
-    }
-
-    void teleport(PhysicalData::id_type id, Position pos)
-    {
-//        positions.at(id) = pos;
+        auto it = objects.find(id);
+        auto r = std::pair<bool, Position>{ false, Position {} };
+        if (it != std::end(objects)) {
+            r.first = true;
+            r.second = it->second.pos;
+        }
+        return r;
     }
 
     auto add_moving_entity(Position pos, Velocity vel = Velocity{0, 0})
     {
-        auto id = all_data.add_object(pos, vel);
+        auto id = next_id;
+
+        objects.insert({ next_id, { pos, vel } });
+
+        ++next_id;
 
         return id;
     }
 
     auto get_in_range(Position const& player, MapSize const& half_screen) const
     {
-        auto& positions = all_data.positions;
-
         auto bounds = Bounds{
             player.x - half_screen.width,
             player.y - half_screen.height,
@@ -256,14 +199,16 @@ public:
             player.y + half_screen.height
         };
 
-        auto r = std::vector<Position>(positions.size());
+        auto r = std::vector<Position>();
 
-        auto it = std::copy_if(std::begin(positions),
-                               std::end(positions),
-                               std::begin(r),
-                               [&bounds](auto const& p) { return bounds.contains(p); } );
-        
-        r.resize(std::distance(std::begin(r), it));
+        r.reserve(objects.size());
+
+        for(auto const& kv: objects) {
+            auto const& p = kv.second.pos;
+            if (bounds.contains(p)) {
+                r.push_back(p);
+            }
+        }
         
         return r;
     }

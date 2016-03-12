@@ -118,7 +118,7 @@ public:
         }
 
         district_map = generate(seed, size);
-        const auto player = WorldPosition { id, { 0, 0 } };
+        const auto player = WorldPosition { id, { 2, 2 } };
 
         return player;
     }

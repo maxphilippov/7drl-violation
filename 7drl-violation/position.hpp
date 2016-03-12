@@ -14,6 +14,14 @@ struct Position
     int y;
 };
 
+auto squared_distance(Position const& p1, Position const& p2)
+{
+    auto dx = p1.x - p2.x;
+    auto dy = p1.y - p2.y;
+
+    return dx*dx + dy*dy;
+}
+
 struct WorldPosition
 {
     unsigned int district_id;

@@ -12,4 +12,7 @@ typedef unsigned int district_id_type;
 
 typedef unsigned long identity_id_type;
 
+
+typedef unsigned long physical_object_id_type;
+
 #endif /* basic_types_h */
