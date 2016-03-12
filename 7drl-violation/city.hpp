@@ -122,7 +122,7 @@ public:
         auto it = used_districts.find(id);
 
         std::random_device rd{};
-        auto seed = rd() * id;
+        auto seed = rd() + id;
         if (it != std::end(used_districts))
         {
             seed = it->second.seed;

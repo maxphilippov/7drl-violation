@@ -49,14 +49,13 @@ public:
     }
 
     // Divide block while it's bigger than smallest_block
-    void divide(int seed, MapSize const& smallest_block, int margin = 0)
+    void divide(std::mt19937 & generator, MapSize const& smallest_block, int margin = 0)
     {
         if (bounds.maxx - bounds.minx <= smallest_block.width ||
             bounds.maxy - bounds.miny <= smallest_block.height) {
             return;
         }
 
-        auto generator = std::mt19937(seed);
         auto width = bounds.maxx - bounds.minx;
         auto height = bounds.maxy - bounds.miny;
         auto d = std::discrete_distribution<>({
@@ -111,8 +110,8 @@ public:
 
         blockA = std::make_unique<CityBlock>(boundsA);
         blockB = std::make_unique<CityBlock>(boundsB);
-        blockA->divide(seed + 1, smallest_block, margin);
-        blockB->divide(seed + 2, smallest_block, margin);
+        blockA->divide(generator, smallest_block, margin);
+        blockB->divide(generator, smallest_block, margin);
     }
 };
 
@@ -131,11 +130,13 @@ auto& fill_bounds(std::vector<T>& cells,
         auto miny = std::max(mapSize.miny, b.miny);
         auto maxx = std::min(mapSize.maxx, b.maxx);
         auto maxy = std::min(mapSize.maxy, b.maxy);
+        auto door_pos = Position { minx + 1, miny };
         for(auto j = miny; j < maxy; ++j) {
             for(auto i = minx; i < maxx; ++i) {
                 auto pos = i + j * mapWidth;
                 cells.at(pos) = (j != miny && i != minx &&
-                                 j != maxy - 1 && i != maxx - 1)
+                                 j != maxy - 1 && i != maxx - 1) ||
+                                (j == door_pos.y && i == door_pos.x)
                 ? value : borderValue;
             }
         }
@@ -171,7 +172,10 @@ auto generate(int seed, MapSize const& size) {
 
     auto minwidth = std::max(size.width / 6, 6);
     auto minheight = std::max(size.height / 6, 6);
-    rootBlock.divide(seed, MapSize{ minwidth, minheight });
+
+    std::mt19937 gen(seed);
+
+    rootBlock.divide(gen, MapSize{ minwidth, minheight });
 
     auto all_bounds = rootBlock.all_bounds();
 
@@ -186,9 +190,9 @@ auto generate(int seed, MapSize const& size) {
 
     std::for_each(std::begin(all_bounds),
                   std::end(all_bounds),
-                  [&r, seed, &building_bounds](auto const& b) {
+                  [&r, &gen, &building_bounds](auto const& b) {
                       auto block = CityBlock{ b };
-                      block.divide(seed, MapSize{ 8, 8 }, 2);
+                      block.divide(gen, MapSize{ 8, 8 }, 2);
                       auto bounds = block.all_bounds();
                       building_bounds.insert(std::end(building_bounds),
                                              std::begin(bounds),
@@ -197,7 +201,6 @@ auto generate(int seed, MapSize const& size) {
 
     auto random_tiles = std::vector<MapTile>(building_bounds.size());
 
-    std::mt19937 gen(seed);
     std::generate(std::begin(random_tiles),
                   std::end(random_tiles),
                   std::bind(building_type_generator, gen));

@@ -33,7 +33,7 @@ struct IDData
 namespace
 {
     const std::vector<std::string> names_pool = {
-        "Aiko", "Aimi", "Airi", "Akira"
+        "Aiko", "Aimi", "Airi", "Akira", "Chinatsu", "Chiyo", "Emi", "Haruko"
     };
 }
 
