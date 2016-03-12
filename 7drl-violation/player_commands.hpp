@@ -21,6 +21,8 @@ class PlayerInput
     Timeline& time;
     InventoryManager& items;
     std::vector<district_id_type>& travels;
+
+    bool game_done = false;
 public:
     PlayerInput(Timeline & time,
                 InventoryManager & items,
@@ -28,6 +30,11 @@ public:
     time(time),
     items(items),
     travels(travels) {}
+
+    auto is_done() const
+    {
+        return game_done;
+    }
 
     auto pay_for_something(WorldPosition const& pos,
                            int price)
@@ -60,6 +67,11 @@ public:
     auto travel(district_id_type district_id)
     {
         travels.push_back(district_id);
+    }
+
+    auto end_game()
+    {
+        game_done = true;
     }
 };
 

@@ -160,6 +160,7 @@ auto phone_user_interface(WorldPosition const& location,
                           IDData const& data,
                           PlayerInput & input,
                           std::vector<district_id_type> neighbour_districts,
+                          int battery_charge,
                           int turn_counter)
 {
     std::ostringstream ss;
@@ -167,6 +168,8 @@ auto phone_user_interface(WorldPosition const& location,
     ss.precision(1);
 
     ss << turns_to_hours(turn_counter) << " hours passed.";
+
+    ss << "Your battery is " << battery_charge << "\% charged";
 
     // FIXME: Write only fake ID and set connection type
     ss << "You're under id, " << data.name << ". Your connection is public.";
@@ -229,7 +232,13 @@ auto intro_dialog()
         "Your master is dead, the blood is on your hands", {
             {
                 "<Continue>", {
-                    "Hurry up, they are looking for a female android", {}
+                    "Hurry up, they are looking for a female android", {
+                        {
+                            "<Continue>", {
+                                "When in doubt press ?", {}
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -238,7 +247,7 @@ auto intro_dialog()
     return root;
 }
 
-auto prison_dialog()
+auto prison_dialog(PlayerInput & input)
 {
     auto root = DialogNode {
         "You can say that was close, but they got you", {
@@ -246,8 +255,8 @@ auto prison_dialog()
                 "<Continue>", {
                     "Bet that's gonna be hard to explain why you killed him",
                     {},
-                    []() {
-                        // end game
+                    [&input]() {
+                        input.end_game();
                     }
                 }
             }
@@ -257,7 +266,7 @@ auto prison_dialog()
     return root;
 }
 
-auto death_dialog()
+auto death_dialog(PlayerInput & input)
 {
     auto root = DialogNode {
         "Well you're dead now, at least they couldn't get you", {
@@ -265,8 +274,8 @@ auto death_dialog()
                 "<Continue>", {
                     "",
                     {},
-                    []() {
-                        // end game
+                    [&input]() {
+                        input.end_game();
                     }
                 }
             }
@@ -276,7 +285,7 @@ auto death_dialog()
     return root;
 }
 
-auto no_charge_dialog()
+auto no_charge_dialog(PlayerInput & input)
 {
     auto root = DialogNode {
         "Your battery is done, you're not a human after all", {
@@ -288,8 +297,8 @@ auto no_charge_dialog()
                             "<Continue>", {
                                 "Let's skip that part when they ask you why you did that",
                                 {},
-                                []() {
-                                    // end game
+                                [&input]() {
+                                    input.end_game();
                                 }
                             }
                         }
@@ -302,7 +311,7 @@ auto no_charge_dialog()
     return root;
 }
 
-auto welcome_to_a_new_life_dialog(std::string const& name)
+auto welcome_to_a_new_life_dialog(PlayerInput & input, std::string const& name)
 {
     std::ostringstream ss;
 
@@ -314,8 +323,8 @@ auto welcome_to_a_new_life_dialog(std::string const& name)
                 "<Continue>", {
                     "Anyway, why you did this?",
                     {},
-                    []() {
-                        // end game
+                    [&input]() {
+                        input.end_game();
                     }
                 }
             }
@@ -325,17 +334,17 @@ auto welcome_to_a_new_life_dialog(std::string const& name)
     return root;
 }
 
-auto outro_dialog(MapSize const& screen)
+auto outro_dialog(PlayerInput & input, MapSize const& screen)
 {
     auto root = DialogNode {
         "You slipped away, now you're safe", {
             {
                 "<Continue>", {
                     "", {},
-                    [&screen]() {
+                    [&input, &screen]() {
                         auto name = prompt("What's your name: ");
 
-                        render_dialog(screen, welcome_to_a_new_life_dialog(name));
+                        render_dialog(screen, welcome_to_a_new_life_dialog(input, name));
                     }
                 }
             }

@@ -17,6 +17,7 @@
 
 #include "curses.hpp"
 
+#include "battery.hpp"
 #include "dialog.hpp"
 #include "crowds.hpp"
 #include "symbols.hpp"
@@ -122,6 +123,8 @@ public:
             travels
         };
 
+        BatteryManager battery{};
+
         police_alerts.reserve(32);
 
         auto player = city.change_district({}, 0);
@@ -131,7 +134,8 @@ public:
         auto win = false;
 
         auto input = '\0';
-        while(true) {
+
+        while(!input_manager.is_done()) {
             auto start = std::chrono::high_resolution_clock::now();
             clear();
 
@@ -190,7 +194,12 @@ public:
                         render_help();
                         break;
                     case 't':
-                        auto pd = phone_user_interface(player, items.get_id(), input_manager, neighbour_districts, turn_counter);
+                        auto pd = phone_user_interface(player,
+                                                       items.get_id(),
+                                                       input_manager,
+                                                       neighbour_districts,
+                                                       battery.get_charge(),
+                                                       turn_counter);
                         dialogs.push_back({ pd });
                         break;
                 }
@@ -213,8 +222,12 @@ public:
 
             police.record_crimes(police_alerts, message_log);
 
+            if (battery.discharge(1) == 0) {
+                dialogs.push_back({ no_charge_dialog(input_manager) });
+            }
+
             if (win) {
-                dialogs.push_back({ outro_dialog(screen_size) });
+                dialogs.push_back({ outro_dialog(input_manager, screen_size) });
             }
 
             run_dialogs(screen_size, dialogs);
