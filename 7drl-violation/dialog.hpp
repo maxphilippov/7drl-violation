@@ -162,21 +162,70 @@ auto cantina_interaction(IDData const& id)
     return root;
 }
 
+auto conflict_dialog(GameState const& state,
+                     std::vector<PoliceAlert> & police_alerts,
+                     WorldPosition const& loc,
+                     bool android_behaviour,
+                     int witness_count = 1)
+{
+    auto id = state.get_id();
+    auto conflict_reaction = DialogNode {"", {}};
+
+    if (witness_count == 0) {
+        conflict_reaction.message = "You successfully escaped";
+    } else {
+        conflict_reaction.message = "Someone saw you escaping, they'll call the police";
+        auto violation_level = (id.is_human() && android_behaviour) ? 200 : 100;
+        conflict_reaction.action = [&police_alerts, &loc, &id, violation_level]() {
+            police_alerts.push_back({id.id, loc, violation_level});
+        };
+    }
+
+    return conflict_reaction;
+}
+
+auto po_inspection(GameState & state,
+                   PoliceManager & police,
+                   std::vector<PoliceAlert> & police_alerts,
+                   WorldPosition const& loc,
+                   identity_id_type id)
+{
+    auto root = DialogNode{};
+
+    auto violation_level = police.check_crime_history(id, loc);
+
+    if (violation_level < 50) {
+        root.message = "Ok, you're good to go, thank you for understanding";
+    } else {
+        // FIXME:
+        root.message = "Sorry, ma'am, but I think you got to go with us";
+        root.action = [&state]() { state.to_jail(); };
+    }
+
+    return root;
+}
+
 // Constant declarations
 auto police_officer_interaction(GameState & state,
                                 PoliceManager & police,
-                                WorldPosition const& location)
+                                std::vector<PoliceAlert> & police_alerts,
+                                WorldPosition const& loc,
+                                // Cause I removed violence options it's always gonna
+                                // be a PO who will be a witness
+                                int witness_count = 1)
 {
+
     auto id = state.get_id();
     auto root = DialogNode {
         "Ma'am, can I check your id, please?",
         {
             {
                 "Cooperate", {
-                    "Thank you, this might take a moment, don't walk too far away", {},
-                    [&location, &police, &id]() {
-                        police.check_crime_history(id.id, location);
-                        // OK, cool, what's next?
+                    "Thank you, this might take a moment, don't walk too far away", {
+                        {
+                            "<Continue>",
+                            po_inspection(state, police, police_alerts, loc, id.id)
+                        }
                     }
                 },
             },
@@ -184,20 +233,19 @@ auto police_officer_interaction(GameState & state,
                 "Refuse", {
                     "Ma'am, you're acting very suspicious. I think I got to take you back to police station\n<he gets wristbands>",
                     {
+                        // Removed violence
                         {
-                            "Punch him back", {
-                                "<You stunned poor guy>", {}
-                            }
+                            "Run away",
+                            conflict_dialog(state, police_alerts, loc, false, witness_count)
                         },
-                        {
-                            "Punch him back (excessive)", {
-                                "<You killed poor guy>", {}, [&state]() { state.discharge(20); }
-                            }
-                        },
-                        { "Run away", {} },
                         {
                             "Run away on steroids", {
-                                "", {}, [&state]() { state.discharge(10); }
+                                "", {
+                                    {
+                                        "<Continue>",
+                                        conflict_dialog(state, police_alerts, loc, true, witness_count)
+                                    }
+                                }, [&state]() { state.discharge(10); }
                             }
                         }
                     }
@@ -215,7 +263,7 @@ auto station_travel_dialog(GameState & state,
                            int turn_counter)
 {
     auto data = state.get_id();
-    auto root = DialogNode {
+    auto root = DialogNode{
         "Where to? It's one-way ticket",
         utility::travel_options(location, state, neighbour_districts, turn_counter)
     };
@@ -226,11 +274,7 @@ auto station_travel_dialog(GameState & state,
 
 auto nothing_to_do_dialog()
 {
-    auto root = DialogNode {
-        "There's nothing to do here", {}
-    };
-
-    return root;
+    return DialogNode{ "There's nothing to do here" };
 }
 
 auto tile_to_interaction(MapTile tile,
@@ -272,16 +316,14 @@ auto phone_user_interface(GameState & state,
     auto battery_percent = state.get_charge();
     std::ostringstream ss;
 
-    ss.precision(1);
+    ss.precision(2);
 
     ss << turns_to_hours(turn_counter) << " hours passed.";
 
-    ss << "Battery is gonna last for " << battery_charge << "hours (" << battery_percent << "%%)";
+    ss << "Battery is gonna last for " << battery_charge << " hours (" << battery_percent << "%%)";
 
-    // FIXME: Write only fake ID and set connection type
+    // FIXME: Write only fake ID
     ss << "Using a fake id: " << data.name << "," << IDData::type_to_string(data.type) << ".";
-
-    ss << "Your connection is public.";
 
     auto travel_options = DialogNode::Replies{};
 
@@ -315,8 +357,7 @@ auto phone_user_interface(GameState & state,
                 }
             },
             {
-                // Adds a point of interest to police, if you do it twice with same ID
-                // it will be recorded as violation
+                // Adds a point of interest to police for anonymous crime
                 "Call police", {
                     // FIXME:
                     "", {}, [&police_alerts, &loc]() {
@@ -328,10 +369,6 @@ auto phone_user_interface(GameState & state,
                 "Toggle fake ID usage", {
                     "", {}, [&state]() { state.toggle_fake_id(); }
                 }
-            },
-            {
-                // FIXME: Change connection to another node // ? why
-                "Change node", {}
             },
             {
                 "Quit", {}

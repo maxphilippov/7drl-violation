@@ -209,7 +209,7 @@ public:
             for (auto const& c: collisions_info) {
                 if (c.first == player_id || c.second == player_id) {
                     dialogs.push_back(
-                        police_officer_interaction(state, police, player)
+                        police_officer_interaction(state, police, police_alerts, player)
                     );
                     // If we don't break that's gonna turn into a bunch of dialogs
                     // which actually happen in parallel
@@ -226,6 +226,10 @@ public:
             if (state.discharge() == 0) {
                 // FIXME:
 //                dialogs.push_back(no_charge_dialog(state));
+            }
+
+            if (state.is_in_jail()) {
+                dialogs.push_back(prison_dialog(state));
             }
 
             if (state.is_won()) {

@@ -2,7 +2,7 @@
 
 My entry for [7DRL 2016 competition](http://7drl.org).
 
-Coffee-break almost-zero-combat roguelike about an android maid accused in murder of her master. Get a fake ID, escape the city on a train, don't get caught.
+Coffee-break zero-combat roguelike about an android maid accused in murder of her master. Get a fake ID, escape the city on a train, don't get caught.
 
 Had to dust off my C++ skills (sorry, no makefile), picked `ncurses` (OS X) and `pdcurses` (Windows) for drawing. I used VS 2015 (free version) and XCode to build this, didn't include project files, but it should be pretty straightforward. Oh, yeah, and it's C++14.
 

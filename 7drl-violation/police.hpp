@@ -136,7 +136,7 @@ public:
         for(auto const& a: alerts) {
             auto id = a.id;
             auto level = a.violation_level;
-            auto pos = a.pos;
+            auto const& pos = a.pos;
             auto it = criminal_records.find(id);
 
             // FIXME:
@@ -146,6 +146,8 @@ public:
                 it->second.violation_level += level;
                 // FIXME: Pass district id
                 it->second.last_known_location = pos;
+            } else {
+                criminal_records.insert({id, { pos, level }});
             }
         }
     }

@@ -30,6 +30,7 @@ class GameState
 
     bool game_done = false;
     bool win_conditions_met = false;
+    bool in_jail = false;
 
     // Purchased tickets
     std::unordered_set<identity_id_type> tickets;
@@ -40,6 +41,16 @@ public:
               std::vector<district_id_type> & travels) :
     time(time),
     travels(travels) {}
+
+    auto is_in_jail() const
+    {
+        return in_jail;
+    }
+
+    auto to_jail()
+    {
+        in_jail = true;
+    }
 
     auto is_won() const
     {
