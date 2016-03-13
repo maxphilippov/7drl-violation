@@ -28,6 +28,18 @@ struct IDData
     } type;
     
     int balance;
+
+    auto is_human() const {
+        return type == Type::human;
+    }
+
+    auto is_android() const {
+        return type == Type::android;
+    }
+
+    static auto type_to_string(Type t) {
+        return (t == Type::human) ? "human" : "android";
+    }
 };
 
 namespace
@@ -58,7 +70,7 @@ class IDGenerator
         std::mt19937 gen(rd());
 
         auto max = names_pool.size();
-        std::uniform_int_distribution<unsigned long> dist{0, max};
+        std::uniform_int_distribution<unsigned long> dist{0, max - 1};
 
         auto pos = dist(gen);
         return names_pool.at(pos);

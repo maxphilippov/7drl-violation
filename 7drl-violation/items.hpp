@@ -11,6 +11,8 @@
 #include <memory>
 #include <vector>
 
+#include "random.hpp"
+
 #include "id.hpp"
 
 class InventoryManager
@@ -38,9 +40,14 @@ public:
         fakeID = std::make_unique<IDData>(id);
     }
 
+    auto get_fake_id() const
+    {
+        return *fakeID;
+    }
+
     auto get_id() const
     {
-        return (use_fake && fakeID != nullptr) ? *fakeID : realID;
+        return (use_fake && fakeID != nullptr) ? get_fake_id() : realID;
     }
 
     auto toggle_fake()
@@ -50,8 +57,8 @@ public:
 
     auto generate_id()
     {
-        // TODO: Generate balance
-        return gen.next(3000);
+        auto balance = generate_random_int(1000, 3000);
+        return gen.next(balance);
     }
 
     auto pay(int amount)

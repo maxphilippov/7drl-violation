@@ -24,7 +24,6 @@
 #include "city.hpp"
 #include "collisions.hpp"
 #include "interface.hpp"
-#include "items.hpp"
 #include "police.hpp"
 #include "position.hpp"
 #include "timeline.hpp"
@@ -107,7 +106,7 @@ public:
 
         std::vector<ActorCollisionInfo> collisions_info;
 
-        GameState game_state{
+        GameState state{
             time,
             travels
         };
@@ -118,11 +117,9 @@ public:
 
         player_id = collisions.add_moving_entity(player.pos);
 
-        auto win = false;
-
         auto input = '\0';
 
-        while(!game_state.is_done()) {
+        while(!state.is_done()) {
             auto start = std::chrono::high_resolution_clock::now();
             clear();
 
@@ -185,7 +182,7 @@ public:
                         break;
                     case 't':
                     {
-                        auto pd = phone_user_interface(game_state,
+                        auto pd = phone_user_interface(state,
                                                        police_alerts,
                                                        player,
                                                        neighbour_districts,
@@ -197,7 +194,8 @@ public:
                     {
                         auto d = tile_to_interaction(city.get(player.pos),
                                                      player,
-                                                     game_state,
+                                                     state,
+                                                     police_alerts,
                                                      neighbour_districts,
                                                      turn_counter);
                         dialogs.push_back(d);
@@ -209,7 +207,7 @@ public:
             for (auto const& c: collisions_info) {
                 if (c.first == player_id || c.second == player_id) {
                     dialogs.push_back(
-                        police_officer_interaction(game_state, police, player)
+                        police_officer_interaction(state, police, player)
                     );
                     // If we don't break that's gonna turn into a bunch of dialogs
                     // which actually happens in parallel
@@ -223,12 +221,13 @@ public:
 
             police.record_crimes(police_alerts, message_log);
 
-            if (game_state.discharge() == 0) {
-                dialogs.push_back(no_charge_dialog(game_state));
+            if (state.discharge() == 0) {
+                // FIXME:
+//                dialogs.push_back(no_charge_dialog(state));
             }
 
-            if (win) {
-                dialogs.push_back(outro_dialog(game_state, screen_size));
+            if (state.is_won()) {
+                dialogs.push_back(outro_dialog(state, screen_size));
             }
 
             run_dialogs(screen_size, dialogs);
@@ -255,9 +254,6 @@ public:
 
             auto elapsed = std::chrono::high_resolution_clock::now() - start;
 
-            // we can store int rewind_to_turn here and ask for input
-            // only if(rewind_to_turn == time.current_turn())
-            // --rewind_to_turn
             input = getch();
             // For simulation testing
             // input = ' ';

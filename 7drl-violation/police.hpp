@@ -24,14 +24,9 @@
 
 // PO - Police officer
 
-struct ActivatedPO
-{
-    physical_object_id_type collision_id;
-};
-
 struct PatrolMission
 {
-    unsigned int active_po_id;
+    physical_object_id_type active_po_id;
     Position point_to_check;
 };
 

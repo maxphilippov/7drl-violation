@@ -46,16 +46,41 @@ namespace utility
     }
 }
 
-auto bar_interaction()
+auto bar_interaction(GameState & state,
+                     std::vector<PoliceAlert> & police_alerts,
+                     WorldPosition const& loc)
 {
     auto root = DialogNode{
-        "Bar is empty, no shady figures around", {}
+        "Bar is empty, no shady figures around", {
+            {
+                "Look for someone who can get you a fake ID", {
+                    "You've found a guy", {
+                        {
+                            "Purchase <this will replace your current fake ID>", {
+                                "You paid for ID",
+                                {},
+                                [&state]() {
+                                    state.purchase_fake_id();
+                                }
+                            },
+                        },
+                        {
+                            "Leave", {
+                                "The guy looks confused", {}
+                            }
+                        }
+                    }
+                }
+            }
+        }
     };
 
     return root;
 }
 
-auto clinic_interaction(WorldPosition const& loc)
+auto clinic_interaction(GameState & state,
+                        std::vector<PoliceAlert> & police_alerts,
+                        WorldPosition const& loc)
 {
     auto root = DialogNode{
         "You walk down the hall and see a bloodpack lying right under your feet", {
@@ -71,8 +96,11 @@ auto clinic_interaction(WorldPosition const& loc)
 }
 
 auto repair_station_interaction(GameState & state,
+                                std::vector<PoliceAlert> & police_alerts,
                                 WorldPosition const& loc)
 {
+    auto id = state.get_id();
+
     std::ostringstream ss;
 
     auto full_charge_price = 500;
@@ -88,7 +116,14 @@ auto repair_station_interaction(GameState & state,
                             "Pay", {
                                 "",
                                 {},
-                                [&state, &loc, full_charge_price]() {
+                                [&id, &police_alerts, &state, &loc, full_charge_price]() {
+                                    if (id.is_human()) {
+                                        police_alerts.push_back({
+                                            id.id,
+                                            loc,
+                                            30
+                                        });
+                                    }
                                     state.pay_for_charge(loc, full_charge_price);
                                 }
                             }
@@ -168,7 +203,7 @@ auto police_officer_interaction(GameState & state,
 
 auto station_travel_dialog(GameState & state,
                            WorldPosition const& location,
-                           std::vector<district_id_type> neighbour_districts,
+                           std::vector<district_id_type> const& neighbour_districts,
                            int turn_counter)
 {
     auto data = state.get_id();
@@ -178,6 +213,44 @@ auto station_travel_dialog(GameState & state,
     };
 
     return root;
+}
+
+
+auto nothing_to_do_dialog()
+{
+    auto root = DialogNode {
+        "There's nothing to do here", {}
+    };
+
+    return root;
+}
+
+auto tile_to_interaction(MapTile tile,
+                         WorldPosition &loc,
+                         GameState & state,
+                         std::vector<PoliceAlert> & police_alerts,
+                         std::vector<district_id_type> const& neighbour_districts,
+                         int turn_counter)
+{
+    DialogNode r;
+    switch(tile) {
+        case Bar:
+            r = bar_interaction(state, police_alerts, loc);
+            break;
+        case Clinic:
+            r = clinic_interaction(state, police_alerts, loc);
+            break;
+        case Repairs:
+            r = repair_station_interaction(state, police_alerts, loc);
+            break;
+        case Station:
+            r = station_travel_dialog(state, loc, neighbour_districts, turn_counter);
+            break;
+        default:
+            r = nothing_to_do_dialog();
+            break;
+    }
+    return r;
 }
 
 auto phone_user_interface(GameState & state,
@@ -194,10 +267,12 @@ auto phone_user_interface(GameState & state,
 
     ss << turns_to_hours(turn_counter) << " hours passed.";
 
-    ss << "Battery: " << battery_charge << "%";
+    ss << "Battery: " << static_cast<float>(battery_charge) << "%";
 
     // FIXME: Write only fake ID and set connection type
-    ss << "Using a fake id: " << data.name << ". Your connection is public.";
+    ss << "Using a fake id: " << data.name << "," << IDData::type_to_string(data.type) << ".";
+
+    ss << "Your connection is public.";
 
     auto travel_options = DialogNode::Replies{};
 
@@ -366,6 +441,34 @@ auto welcome_to_a_new_life_dialog(GameState & state, std::string const& name)
     return root;
 }
 
+auto leaving_dialog(GameState & state)
+{
+    auto root = DialogNode{
+        "Can I help you ma'am?", {
+            {
+                "Yes, please, the train is waiting for me", {
+                    "Ok, let me see... Yeah, you're perfectly fine to go", {
+                        {
+                            "Thank you", {
+                                "Hope you enjoy the trip", {
+                                    {
+                                        "You bet I will", {
+                                            "Have a nice day!", {}, [&state]() { state.leave_on_train(); }
+                                        }
+                                    }
+                                }
+
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    };
+
+    return root;
+}
+
 auto outro_dialog(GameState & state, MapSize const& screen)
 {
     auto root = DialogNode {
@@ -384,41 +487,6 @@ auto outro_dialog(GameState & state, MapSize const& screen)
     };
     
     return root;
-}
-
-auto nothing_to_do_dialog()
-{
-    auto root = DialogNode {
-        "There's nothing to do here", {}
-    };
-    
-    return root;
-}
-
-auto tile_to_interaction(MapTile tile,
-                         WorldPosition &loc,
-                         GameState & state,
-                         std::vector<district_id_type> neighbour_districts,
-                         int turn_counter)
-{
-    DialogNode r;
-    switch(tile) {
-        case Bar:
-            r = bar_interaction();
-            break;
-        case Clinic:
-            r = clinic_interaction(loc);
-            break;
-        case Repairs:
-            r = repair_station_interaction(state, loc);
-            break;
-        case Station:
-            r = station_travel_dialog(state, loc, neighbour_districts, turn_counter);
-        default:
-            r = nothing_to_do_dialog();
-            break;
-    }
-    return r;
 }
 
 #endif /* dialog_h */

@@ -24,8 +24,8 @@ namespace symbols
         { MapTile::Crowd, 'C' },
         { MapTile::Bar, 'b' },
         { MapTile::Clinic, 'c' },
-        { MapTile::Repairs, 'r' },
-        { MapTile::Station, '-' }
+        { MapTile::Station, 't' },
+        { MapTile::Repairs, 'r' }
     };
 
     const CharMap actors = {

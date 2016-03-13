@@ -9,6 +9,7 @@
 #define game_state_h
 
 #include <sstream>
+#include <unordered_set>
 #include <vector>
 
 #include "battery.hpp"
@@ -27,11 +28,22 @@ class GameState
     std::vector<district_id_type>& travels;
 
     bool game_done = false;
+    bool win = false;
+
+    // Purchased tickets
+    std::unordered_set<identity_id_type> tickets;
+
+    std::unordered_set<identity_id_type> checked_ids;
 public:
     GameState(Timeline & time,
                 std::vector<district_id_type> & travels) :
     time(time),
     travels(travels) {}
+
+    auto is_won() const
+    {
+        return win;
+    }
 
     auto is_done() const
     {
@@ -58,6 +70,11 @@ public:
     auto get_id() const
     {
         return items.get_id();
+    }
+
+    auto get_fake_id() const
+    {
+return items.get_fake_id();
     }
 
     auto start_id_check(WorldPosition const& pos)
@@ -99,14 +116,31 @@ public:
         travels.push_back(district_id);
     }
 
-    auto end_game()
-    {
-        game_done = true;
-    }
-
     auto discharge(int amount = 1)
     {
         return battery.discharge(amount);
+    }
+
+    auto purchase_train_ticket(WorldPosition const& pos)
+    {
+        auto id = get_id();
+        // FIXME: if id == 0 You're fked
+        pay_for_something(pos, 7000);
+        tickets.insert(id.id);
+    }
+
+    auto leave_on_train()
+    {
+        // You can't buy a ticket on your
+        auto id = get_fake_id();
+        if (tickets.count(id.id)) {
+            win = true;
+        }
+    }
+
+    auto end_game()
+    {
+        game_done = true;
     }
 };
 
