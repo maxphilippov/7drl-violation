@@ -410,7 +410,7 @@ auto intro_dialog()
                     "Find a bar, purchase a fake ID with the money you have", {
                         {
                             "<Continue>", {
-                                "Then get to district #5 and purchase a ticket for a train", {
+                                "Then get to district #4 and purchase a ticket for a train", {
                                     {
                                         "<Continue>", {
                                             "Now hurry up, they are looking for a female android", {
