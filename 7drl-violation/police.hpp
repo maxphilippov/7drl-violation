@@ -46,6 +46,7 @@ class PoliceManager
 {
     static const int officer_reaction_range = 7 * 7;
     static const int spawn_interval = 8;
+    static const int nap_interval = 7;
 
     typedef int violation_level;
     // I don't need a fast lookup actually cause getting one value
@@ -57,12 +58,37 @@ class PoliceManager
     std::vector<PatrolMission> on_patrol_mission;
 
     std::vector<WorldPosition> points_of_interest;
+
+    void spawn(CollisionManager & collisions,
+               Bounds const& simulation_bounds)
+    {
+
+        const auto w = simulation_bounds.maxx - simulation_bounds.minx;
+        const auto h = simulation_bounds.maxy - simulation_bounds.miny;
+        // spawn new PO near some point of interest
+        // FIXME: don't spawn in player vision range
+        const auto x = generate_random_int(std::max(simulation_bounds.minx, 0), w);
+        const auto y = generate_random_int(std::max(simulation_bounds.miny, 0), h);
+        const auto pos = Position{ x, y };
+
+        const auto missionTarget = Position { x + 5, y + 5 };
+        const auto id = collisions.add_moving_entity(pos);
+        const auto mission = PatrolMission{
+            static_cast<unsigned int>(id),
+            missionTarget
+        };
+        cops_on_the_street.push_back(id);
+        on_patrol_mission.push_back(mission);
+    }
+
 public:
-    void restart()
+    void restart(CollisionManager & collisions, Bounds const& simulation_bounds)
     {
         cops_on_the_street.clear();
         on_patrol_mission.clear();
-        // FIXME: Need to spawn initial troops
+        for (auto i = 0; i < 20; ++i) {
+            spawn(collisions, simulation_bounds);
+        }
     }
 
     void update(Position const& player, // To raycast vision
@@ -78,43 +104,27 @@ public:
         }
 
         if (turn_count % spawn_interval == 0) {
-            const auto w = simulation_bounds.maxx - simulation_bounds.minx;
-            const auto h = simulation_bounds.maxy - simulation_bounds.miny;
-            // spawn new PO near some point of interest
-            // FIXME: don't spawn in player vision range
-            const auto x = generate_random_int(std::max(simulation_bounds.minx, 0), w);
-            const auto y = generate_random_int(std::max(simulation_bounds.miny, 0), h);
-            const auto pos = Position{ x, y };
-
-            const auto missionTarget = Position { x + 5, y + 5 };
-            const auto id = collisions.add_moving_entity(pos);
-            const auto mission = PatrolMission{
-                static_cast<unsigned int>(id),
-                missionTarget
-            };
-            cops_on_the_street.push_back(id);
-            on_patrol_mission.push_back(mission);
+            spawn(collisions, simulation_bounds);
         }
 
-        std::remove_if(std::begin(cops_on_the_street),
-                       std::end(cops_on_the_street),
-                       [&collisions, &player, &city] (auto i) {
-                           auto p = collisions.get_position(i);
-                           if (!p.first) return true;
+        if (turn_count % nap_interval != 0 || alert_mode) {
+            std::remove_if(std::begin(cops_on_the_street),
+                           std::end(cops_on_the_street),
+                           [&collisions, &player, &city] (auto i) {
+                               auto p = collisions.get_position(i);
+                               if (!p.first) return true;
 
-                           auto vision = collisions.check_vision(city, i, player, officer_reaction_range);
-                           if (vision) {
-                               auto v =towards(p.second, player);
-                           }
-                           const auto v = vision ? towards(p.second, player) : Velocity{
-                               generate_random_int(-1, 1),
-                               generate_random_int(-1, 1)
-                           };
+                               auto vision = collisions.check_vision(city, i, player, officer_reaction_range);
+                               const auto v = vision ? towards(p.second, player) : Velocity{
+                                   generate_random_int(-1, 1),
+                                   generate_random_int(-1, 1)
+                               };
 
-                           // Returns false if entity was disposed
-                           // by collision manager
-                           return !collisions.change_velocity(i, v);
-                       });
+                               // Returns false if entity was disposed
+                               // by collision manager
+                               return !collisions.change_velocity(i, v);
+                           });
+        }
     }
 
     auto check_crime_history(identity_id_type id, WorldPosition const& pos)

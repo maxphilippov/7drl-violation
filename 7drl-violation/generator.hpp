@@ -130,6 +130,9 @@ auto& fill_bounds(std::vector<T>& cells,
         auto miny = std::max(mapSize.miny, b.miny);
         auto maxx = std::min(mapSize.maxx, b.maxx);
         auto maxy = std::min(mapSize.maxy, b.maxy);
+
+        if (maxx - minx < 3 || maxy - miny < 3) continue;
+
         auto door_pos = Position { minx + 1, miny };
         for(auto j = miny; j < maxy; ++j) {
             for(auto i = minx; i < maxx; ++i) {

@@ -75,9 +75,9 @@ auto repair_station_interaction(PlayerInput & input,
 {
     std::ostringstream ss;
 
-    auto repair_price = 3000;
+    auto full_charge_price = 500;
 
-    ss << "Full charge will cost you " << repair_price;
+    ss << "Full charge will cost you " << full_charge_price;
 
     auto root = DialogNode{
         "You are warmly welcomed", {
@@ -88,8 +88,8 @@ auto repair_station_interaction(PlayerInput & input,
                             "Pay", {
                                 "",
                                 {},
-                                [&input, &loc, repair_price]() {
-                                    input.pay_for_charge(loc, repair_price);
+                                [&input, &loc, full_charge_price]() {
+                                    input.pay_for_charge(loc, full_charge_price);
                                 }
                             }
                         },
@@ -163,8 +163,8 @@ auto police_officer_interaction(PlayerInput & input,
     return root;
 }
 
-auto station_travel_dialog(WorldPosition const& location,
-                           PlayerInput & input,
+auto station_travel_dialog(PlayerInput & input,
+                           WorldPosition const& location,
                            std::vector<district_id_type> neighbour_districts,
                            int turn_counter)
 {
@@ -177,8 +177,9 @@ auto station_travel_dialog(WorldPosition const& location,
     return root;
 }
 
-auto phone_user_interface(WorldPosition const& location,
-                          PlayerInput & input,
+auto phone_user_interface(PlayerInput & input,
+                          std::vector<PoliceAlert> & police_alerts,
+                          WorldPosition const& loc,
                           std::vector<district_id_type> neighbour_districts,
                           int turn_counter)
 {
@@ -207,7 +208,7 @@ auto phone_user_interface(WorldPosition const& location,
                             "Submit", {
                                 "",
                                 {},
-                                [&input, &location]() { input.start_id_check(location); }
+                                [&input, &loc]() { input.start_id_check(loc); }
                             }
                         },
                         {
@@ -221,18 +222,25 @@ auto phone_user_interface(WorldPosition const& location,
             },
             {
                 "Order tickets", {
-                    "Ordering tickets",
+                    "To get on a train you'll need to pass a full ID check",
                     {},
-                    [&input, &location]() { input.pay_for_something(location, 3000); }
+                    [&input, &loc]() { input.pay_for_something(loc, 3000); }
                 }
             },
             {
                 // Adds a point of interest to police, if you do it twice with same ID
                 // it will be recorded as violation
-                "Call police", {}
+                "Call police", {
+                    // FIXME:
+                    "", {}, [&police_alerts, &loc]() {
+                        police_alerts.push_back({0, loc, 3});
+                    }
+                }
             },
             {
-                "Travel", station_travel_dialog(location, input, neighbour_districts, turn_counter)
+                "Toggle fake ID usage", {
+                    "", {}, [&input]() { input.toggle_fake_id(); }
+                }
             },
             {
                 // FIXME: Change connection to another node // ? why
@@ -402,7 +410,7 @@ auto tile_to_interaction(MapTile tile,
             r = repair_station_interaction(input, loc);
             break;
         case Station:
-            r = station_travel_dialog(loc, input, neighbour_districts, turn_counter);
+            r = station_travel_dialog(input, loc, neighbour_districts, turn_counter);
         default:
             r = nothing_to_do_dialog();
             break;

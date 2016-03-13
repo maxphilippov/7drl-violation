@@ -20,10 +20,12 @@ class InventoryManager
 
     IDGenerator gen;
 
+    bool use_fake = true;
+
     std::vector<int> player_posessions; // bloodpacks, ???
 public:
     InventoryManager() :
-    realID{0, "Mikoto", IDData::android, 5000},
+    realID{1, "Mikoto", IDData::android, 5000},
     fakeID(nullptr) {}
 
     void change_ID(IDData d)
@@ -36,9 +38,14 @@ public:
         fakeID = std::make_unique<IDData>(id);
     }
 
-    IDData get_id() const
+    auto get_id() const
     {
-        return realID;
+        return (use_fake && fakeID != nullptr) ? *fakeID : realID;
+    }
+
+    auto toggle_fake()
+    {
+        use_fake = !use_fake;
     }
 
     auto generate_id()

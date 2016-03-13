@@ -71,18 +71,27 @@ public:
         // FIXME: Change price based on id type
         auto balance = pay_anonymously(3000);
 
+        auto id = items.generate_id();
+
+        items.set_id(id);
+
         return balance;
     }
 
     auto pay_for_charge(WorldPosition const& pos, int price)
     {
         pay_for_something(pos, price);
-        battery.charge(300);
+        battery.charge(BatteryManager::max_charge);
     }
 
     auto get_charge() const
     {
         return battery.get_charge();
+    }
+
+    auto toggle_fake_id()
+    {
+        items.toggle_fake();
     }
 
     auto travel(district_id_type district_id)

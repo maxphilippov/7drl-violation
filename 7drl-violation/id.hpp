@@ -39,8 +39,8 @@ namespace
 
 class IDGenerator
 {
-    // 0 is reserved for player id, bad decision
-    identity_id_type id = 1;
+    // 1 is reserved for player id, bad decision, and we need unresolved crimes
+    identity_id_type id = 2;
 
     auto random_type() const
     {

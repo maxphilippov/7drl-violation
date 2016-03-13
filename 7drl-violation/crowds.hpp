@@ -20,13 +20,13 @@
 
 class CrowdManager
 {
-    static const auto spawn_interval = 12;
+    static const auto spawn_interval = 3;
     MapSize size;
     MapCells crowds_map;
 
     std::vector<Position> crowd_centers;
 
-    unsigned long crowds_limit = 20;
+    unsigned long crowds_limit = 80;
 
     auto spawn_crowd(Bounds const& inside, MapCells const& map, Position const& pos)
     {

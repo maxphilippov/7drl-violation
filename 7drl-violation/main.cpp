@@ -150,13 +150,14 @@ public:
             auto current_district_id = city.get_current_district_id();
             auto neighbour_districts = city.get_neighbour_districts(current_district_id);
 
-            if (actions.count(input) != 0) {
 
-                auto pos = player.pos;
-                auto player_interest = Bounds {
-                    pos.x - screen_size.width, pos.y - screen_size.width,
-                    pos.x + screen_size.height, pos.y + screen_size.height
-                };
+            auto pos = player.pos;
+            auto player_interest = Bounds {
+                pos.x - screen_size.width, pos.y - screen_size.width,
+                pos.x + screen_size.height, pos.y + screen_size.height
+            };
+
+            if (actions.count(input) != 0) {
 
                 crowds.update(player_interest, city.map(), turn_counter);
 
@@ -191,8 +192,9 @@ public:
                         break;
                     case 't':
                     {
-                        auto pd = phone_user_interface(player,
-                                                       input_manager,
+                        auto pd = phone_user_interface(input_manager,
+                                                       police_alerts,
+                                                       player,
                                                        neighbour_districts,
                                                        turn_counter);
                         dialogs.push_back(pd);
@@ -246,7 +248,7 @@ public:
                 crowds.resize(new_size);
                 collisions.restart();
                 player_id = collisions.add_moving_entity(player.pos);
-                police.restart();
+                police.restart(collisions, player_interest);
                 // FIXME: Change time constant
                 time.skip_time({ 1.5f });
             }

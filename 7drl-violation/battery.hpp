@@ -30,6 +30,7 @@ public:
     }
 };
 
-const int BatteryManager::max_charge = 300;
+// FIXME:
+const int BatteryManager::max_charge = 500;
 
 #endif /* battery_h */
