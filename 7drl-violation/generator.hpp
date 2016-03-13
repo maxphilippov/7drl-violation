@@ -148,13 +148,6 @@ auto& fill_bounds(std::vector<T>& cells,
     return cells;
 }
 
-// FIXME: Ok we don't need that
-struct MapData
-{
-    MapCells cells;
-    std::vector<BuildingType> buildings_areas;
-};
-
 auto building_type_generator(std::mt19937 & gen)
 {
     auto lower = static_cast<int>(MapTile::Bar);
@@ -226,10 +219,6 @@ auto generate(int seed, MapSize const& size) {
         }
 
     }
-    auto data = MapData
-    {
-        r
-    };
 
     return r;
 }
