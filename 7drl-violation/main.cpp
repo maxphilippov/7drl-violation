@@ -17,7 +17,6 @@
 
 #include "curses.hpp"
 
-#include "battery.hpp"
 #include "dialog.hpp"
 #include "crowds.hpp"
 #include "symbols.hpp"
@@ -67,7 +66,6 @@ private:
     Timeline time;
     // Processes police officer tasks etc.
     PoliceManager police;
-    InventoryManager items;
 
     std::vector<std::string> message_log;
 public:
@@ -98,9 +96,10 @@ public:
 
     ~Game()
     {
+        clear();
         printw("Thanks for playing Violation. See you soon, ma'am.");
-        // FIXME: Commented for tests
-        // getch();
+        refresh();
+        getch();
 
         curs_set(TRUE);
         endwin();
@@ -119,11 +118,8 @@ public:
 
         PlayerInput input_manager{
             time,
-            items,
             travels
         };
-
-        BatteryManager battery{};
 
         police_alerts.reserve(32);
 
@@ -148,8 +144,6 @@ public:
             }
 
             auto level_bounds = city.bounds();
-
-            auto current_id = items.get_id();
 
             auto turn_counter = time.current_turn();
 
@@ -198,10 +192,8 @@ public:
                     case 't':
                     {
                         auto pd = phone_user_interface(player,
-                                                       current_id,
                                                        input_manager,
                                                        neighbour_districts,
-                                                       battery.get_charge(),
                                                        turn_counter);
                         dialogs.push_back(pd);
                     }
@@ -209,7 +201,6 @@ public:
                     case 'e':
                     {
                         auto d = tile_to_interaction(city.get(player.pos),
-                                                     current_id,
                                                      player,
                                                      input_manager,
                                                      neighbour_districts,
@@ -223,7 +214,7 @@ public:
             for (auto const& c: collisions_info) {
                 if (c.first == player_id || c.second == player_id) {
                     dialogs.push_back(
-                        police_officer_interaction(player, current_id, police)
+                        police_officer_interaction(input_manager, police, player)
                     );
                     // If we don't break that's gonna turn into a bunch of dialogs
                     // which actually happens in parallel
@@ -237,7 +228,7 @@ public:
 
             police.record_crimes(police_alerts, message_log);
 
-            if (battery.discharge(1) == 0) {
+            if (input_manager.discharge() == 0) {
                 dialogs.push_back(no_charge_dialog(input_manager));
             }
 

@@ -12,7 +12,7 @@ class BatteryManager
 {
     int current_charge;
 public:
-    const static auto max_charge = 300;
+    const static int max_charge;
     BatteryManager(int charge = max_charge) : current_charge(charge) {}
 
     auto get_charge() const { return current_charge / max_charge * 100; }
@@ -29,5 +29,7 @@ public:
         return current_charge;
     }
 };
+
+const int BatteryManager::max_charge = 300;
 
 #endif /* battery_h */

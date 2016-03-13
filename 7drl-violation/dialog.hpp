@@ -13,7 +13,6 @@
 #include <vector>
 
 #include "basic_types.hpp"
-#include "id.hpp"
 #include "interface.hpp"
 #include "interaction_types.hpp"
 #include "player_commands.hpp"
@@ -25,7 +24,6 @@
 namespace utility
 {
     auto travel_options(WorldPosition const& location,
-                        IDData const& data,
                         PlayerInput & input,
                         std::vector<district_id_type> const& ids,
                         int turn_counter)
@@ -72,12 +70,34 @@ auto clinic_interaction(WorldPosition const& loc)
     return root;
 }
 
-auto repair_station_interaction(IDData const& id)
+auto repair_station_interaction(PlayerInput & input,
+                                WorldPosition const& loc)
 {
+    std::ostringstream ss;
+
+    auto repair_price = 3000;
+
+    ss << "Full charge will cost you " << repair_price;
+
     auto root = DialogNode{
         "You are warmly welcomed", {
             {
-                "Pay for recharge", {}
+                "Pay for recharge", {
+                    ss.str(), {
+                        {
+                            "Pay", {
+                                "",
+                                {},
+                                [&input, &loc, repair_price]() {
+                                    input.pay_for_charge(loc, repair_price);
+                                }
+                            }
+                        },
+                        {
+                            "No, thanks", {}
+                        }
+                    }
+                }
             },
             {
                 "Pay for repair", {}
@@ -105,10 +125,11 @@ auto cantina_interaction(IDData const& id)
 }
 
 // Constant declarations
-auto police_officer_interaction(WorldPosition const& location,
-                                IDData const& id,
-                                PoliceManager & police)
+auto police_officer_interaction(PlayerInput & input,
+                                PoliceManager & police,
+                                WorldPosition const& location)
 {
+    auto id = input.get_id();
     auto root = DialogNode {
         "Ma'am, can I check your id, please?",
         {
@@ -129,7 +150,7 @@ auto police_officer_interaction(WorldPosition const& location,
                             "<You stunned poor guy>", {}
                         } },
                         { "Punch him back (excessive)", {
-                            "<You killed poor guy>", {}
+                            "<You killed poor guy>", {}, [&input]() { input.discharge(20); }
                         } },
                         { "Run away", {} },
                         { "Run away on steroids", {} }
@@ -143,26 +164,26 @@ auto police_officer_interaction(WorldPosition const& location,
 }
 
 auto station_travel_dialog(WorldPosition const& location,
-                           IDData const& data,
                            PlayerInput & input,
                            std::vector<district_id_type> neighbour_districts,
                            int turn_counter)
 {
+    auto data = input.get_id();
     auto root = DialogNode {
         "Where to? It's one-way ticket",
-        utility::travel_options(location, data, input, neighbour_districts, turn_counter)
+        utility::travel_options(location, input, neighbour_districts, turn_counter)
     };
 
     return root;
 }
 
 auto phone_user_interface(WorldPosition const& location,
-                          IDData const& data,
                           PlayerInput & input,
                           std::vector<district_id_type> neighbour_districts,
-                          int battery_charge,
                           int turn_counter)
 {
+    auto data = input.get_id();
+    auto battery_charge = input.get_charge();
     std::ostringstream ss;
 
     ss.precision(1);
@@ -211,7 +232,7 @@ auto phone_user_interface(WorldPosition const& location,
                 "Call police", {}
             },
             {
-                "Travel", station_travel_dialog(location, data, input, neighbour_districts, turn_counter)
+                "Travel", station_travel_dialog(location, input, neighbour_districts, turn_counter)
             },
             {
                 // FIXME: Change connection to another node // ? why
@@ -364,7 +385,6 @@ auto nothing_to_do_dialog()
 }
 
 auto tile_to_interaction(MapTile tile,
-                         IDData const& id,
                          WorldPosition &loc,
                          PlayerInput & input,
                          std::vector<district_id_type> neighbour_districts,
@@ -379,10 +399,10 @@ auto tile_to_interaction(MapTile tile,
             r = clinic_interaction(loc);
             break;
         case Repairs:
-            r = repair_station_interaction(id);
+            r = repair_station_interaction(input, loc);
             break;
         case Station:
-            r = station_travel_dialog(loc, id, input, neighbour_districts, turn_counter);
+            r = station_travel_dialog(loc, input, neighbour_districts, turn_counter);
         default:
             r = nothing_to_do_dialog();
             break;

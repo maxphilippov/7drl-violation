@@ -11,24 +11,26 @@
 #include <sstream>
 #include <vector>
 
+#include "battery.hpp"
 #include "basic_types.hpp"
+#include "interaction_types.hpp"
 #include "items.hpp"
 #include "timeline.hpp"
 
-// Maybe it should be called GameActions or something
+// Maybe it should be called GameActions or GameState and probably hold these
+// members not by reference, but fully own them
 class PlayerInput
 {
+    BatteryManager battery;
     Timeline& time;
-    InventoryManager& items;
+    InventoryManager items;
     std::vector<district_id_type>& travels;
 
     bool game_done = false;
 public:
     PlayerInput(Timeline & time,
-                InventoryManager & items,
                 std::vector<district_id_type> & travels) :
     time(time),
-    items(items),
     travels(travels) {}
 
     auto is_done() const
@@ -53,15 +55,34 @@ public:
         return balance;
     }
 
+    auto get_id() const
+    {
+        return items.get_id();
+    }
+
     auto start_id_check(WorldPosition const& pos)
     {
         auto id = items.get_id();
         time.add_id_check(id, pos);
     }
 
-    auto purchase_fake_id() {
+    auto purchase_fake_id()
+    {
         // FIXME: Change price based on id type
         auto balance = pay_anonymously(3000);
+
+        return balance;
+    }
+
+    auto pay_for_charge(WorldPosition const& pos, int price)
+    {
+        pay_for_something(pos, price);
+        battery.charge(300);
+    }
+
+    auto get_charge() const
+    {
+        return battery.get_charge();
     }
 
     auto travel(district_id_type district_id)
@@ -72,6 +93,11 @@ public:
     auto end_game()
     {
         game_done = true;
+    }
+
+    auto discharge(int amount = 1)
+    {
+        return battery.discharge(amount);
     }
 };
 
