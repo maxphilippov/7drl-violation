@@ -8,6 +8,7 @@
 #ifndef game_state_h
 #define game_state_h
 
+#include <algorithm>
 #include <sstream>
 #include <unordered_set>
 #include <vector>
@@ -28,7 +29,7 @@ class GameState
     std::vector<district_id_type>& travels;
 
     bool game_done = false;
-    bool win = false;
+    bool win_conditions_met = false;
 
     // Purchased tickets
     std::unordered_set<identity_id_type> tickets;
@@ -36,13 +37,13 @@ class GameState
     std::unordered_set<identity_id_type> checked_ids;
 public:
     GameState(Timeline & time,
-                std::vector<district_id_type> & travels) :
+              std::vector<district_id_type> & travels) :
     time(time),
     travels(travels) {}
 
     auto is_won() const
     {
-        return win;
+        return win_conditions_met;
     }
 
     auto is_done() const
@@ -74,7 +75,7 @@ public:
 
     auto get_fake_id() const
     {
-return items.get_fake_id();
+        return items.get_fake_id();
     }
 
     auto start_id_check(WorldPosition const& pos)
@@ -121,6 +122,22 @@ return items.get_fake_id();
         return battery.discharge(amount);
     }
 
+    auto record_checked_ids(std::vector<identity_id_type> const& checked)
+    {
+        checked_ids.insert(std::begin(checked),
+                           std::end(checked));
+    }
+
+    auto has_id_checked(identity_id_type id) const
+    {
+        return checked_ids.count(id) > 0;
+    }
+
+    auto has_ticket(identity_id_type id) const
+    {
+        return tickets.count(id) > 0;
+    }
+
     auto purchase_train_ticket(WorldPosition const& pos)
     {
         auto id = get_id();
@@ -131,13 +148,13 @@ return items.get_fake_id();
 
     auto leave_on_train()
     {
-        // You can't buy a ticket on your
+        // You aren't supposed to buy a ticket on your
         auto id = get_fake_id();
-        if (tickets.count(id.id)) {
-            win = true;
+        if (has_ticket(id.id)) {
+            win_conditions_met = true;
         }
     }
-
+    
     auto end_game()
     {
         game_done = true;

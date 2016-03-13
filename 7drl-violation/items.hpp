@@ -27,13 +27,8 @@ class InventoryManager
     std::vector<int> player_posessions; // bloodpacks, ???
 public:
     InventoryManager() :
-    realID{1, "Mikoto", IDData::android, 5000},
+    realID{player_real_identity},
     fakeID(nullptr) {}
-
-    void change_ID(IDData d)
-    {
-        fakeID.reset(new IDData{d});
-    }
 
     auto set_id(IDData id)
     {
@@ -59,6 +54,10 @@ public:
     {
         auto balance = generate_random_int(1000, 3000);
         return gen.next(balance);
+    }
+
+    auto legal_pay(int amount)
+    {
     }
 
     auto pay(int amount)

@@ -89,7 +89,8 @@ public:
         ID_checks.push(c);
     }
     
-    void update(std::vector<PoliceAlert> & police_alerts)
+    void update(std::vector<PoliceAlert> & police_alerts,
+                std::vector<identity_id_type> & checked_ids)
     {
         using namespace police_alerts;
         if (!purchases_checks.empty()) {
@@ -107,7 +108,11 @@ public:
             while(job.finish_by_turn == turn_counter) {
                 ID_checks.pop();
                 // FIXME: Check police records
-                police_alerts.push_back(attempt_to_escape(job.data.id, job.pos));
+                if (true) {
+                    police_alerts.push_back(attempt_to_escape(job.data.id, job.pos));
+                } else {
+                    checked_ids.push_back(job.data.id);
+                }
                 job = ID_checks.front();
             }
         }

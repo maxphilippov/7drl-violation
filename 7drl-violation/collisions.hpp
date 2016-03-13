@@ -14,6 +14,7 @@
 #include <unordered_map>
 #include <map>
 
+#include "basic_types.hpp"
 #include "map.hpp"
 #include "interaction_types.hpp"
 #include "position.hpp"
@@ -31,12 +32,6 @@ struct PosVel
 {
     Position pos;
     Velocity vel;
-};
-
-struct ActorCollisionInfo
-{
-    physical_object_id_type first;
-    physical_object_id_type second;
 };
 
 class CollisionManager
@@ -109,12 +104,6 @@ public:
         objects = new_objects;
     }
 
-    bool raycast(MapCells const& cells, Position const& from, Position const& to) const
-    {
-        // Draw simple line and check if there are no walls or crowds on the way
-        return true;
-    }
-
     auto check_free_cells(CityManager const& city, std::vector<Position> const& poss) const
     {
         auto free_pos = std::vector<Position>(poss.size());
@@ -128,30 +117,6 @@ public:
         free_pos.resize(std::distance(std::begin(free_pos), it));
 
         return free_pos;
-    }
-
-    auto nearest_free_cell(CityManager const& city, Position const& pos) const
-    {
-        auto city_size = city.bounds();
-
-        auto bounds = Bounds {
-            0, 0, city_size.width, city_size.height
-        };
-
-        if (!bounds.contains(pos)) {
-            // FIXME: Optional value
-            return Position { -1, -1 };
-        }
-
-        auto tile = city.get(pos);
-
-        if (unpassable_tiles.count(tile) == 0) {
-            return pos;
-        } else {
-            // FIXME: iterate over neighbours and increase range if there's no
-            // free cells around
-            return nearest_free_cell(city, Position{ pos.x - 1, pos.y - 1 });
-        }
     }
 
     // Return false if there's no such object registered for collisions
@@ -178,11 +143,6 @@ public:
             r.second = it->second.pos;
         }
         return r;
-    }
-
-    auto check_cells_vision() const
-    {
-        
     }
 
     auto check_vision(CityManager const& city,

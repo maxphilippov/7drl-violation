@@ -443,6 +443,8 @@ auto welcome_to_a_new_life_dialog(GameState & state, std::string const& name)
 
 auto leaving_dialog(GameState & state)
 {
+    auto replies = DialogNode::Replies {};
+
     auto root = DialogNode{
         "Can I help you ma'am?", {
             {

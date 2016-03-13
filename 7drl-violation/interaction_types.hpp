@@ -32,21 +32,26 @@ struct PoliceAlert
 
 namespace police_alerts
 {
+    auto purchase_balance_alert(identity_id_type id, WorldPosition const& pos)
+    {
+        return PoliceAlert {
+            id, pos, 3
+        };
+    }
 
-auto purchase_balance_alert(identity_id_type id, WorldPosition const& pos)
-{
-    return PoliceAlert {
-        id, pos, 3
-    };
-}
+    auto attempt_to_escape(identity_id_type id, WorldPosition const& pos)
+    {
+        return PoliceAlert {
+            id, pos, 20
+        };
+    }
 
-auto attempt_to_escape(identity_id_type id, WorldPosition const& pos)
-{
-    return PoliceAlert {
-        id, pos, 20
-    };
-}
-
+    auto android_murder(identity_id_type id, WorldPosition const& pos)
+    {
+        return PoliceAlert {
+            id, pos, 1000
+        };
+    }
 }
 
 #endif /* interaction_types_h */

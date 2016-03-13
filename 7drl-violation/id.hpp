@@ -42,6 +42,8 @@ struct IDData
     }
 };
 
+const auto player_real_identity = IDData{1, "Mikoto", IDData::android, 5000};
+
 namespace
 {
     const std::vector<std::string> names_pool = {

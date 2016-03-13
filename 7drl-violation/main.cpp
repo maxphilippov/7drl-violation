@@ -100,22 +100,23 @@ public:
     void run()
     {
         std::vector<PoliceAlert> police_alerts;
-        // A vector of travels is pretty stupid
+        std::vector<identity_id_type> checked_ids;
         std::vector<district_id_type> travels;
         std::vector<DialogNode> dialogs = { intro_dialog() };
 
         std::vector<ActorCollisionInfo> collisions_info;
 
+        police_alerts.reserve(32);
+
         GameState state{
             time,
             travels
         };
-
-        police_alerts.reserve(32);
-
         auto player = city.change_district({}, 0);
 
         player_id = collisions.add_moving_entity(player.pos);
+
+        police_alerts.push_back(police_alerts::android_murder(player_real_identity.id, player));
 
         auto input = '\0';
 
@@ -137,7 +138,6 @@ public:
 
             auto current_district_id = city.get_current_district_id();
             auto neighbour_districts = city.get_neighbour_districts(current_district_id);
-
 
             auto pos = player.pos;
             auto player_interest = Bounds {
@@ -174,7 +174,9 @@ public:
 
                 // Adds interaction for completed jobs and probably creates something
                 // like CityChange with data on what to change in city before next turn
-                time.update(police_alerts);
+                time.update(police_alerts, checked_ids);
+
+                state.record_checked_ids(checked_ids);
             } else {
                 switch(input) {
                     case '?':
@@ -210,7 +212,7 @@ public:
                         police_officer_interaction(state, police, player)
                     );
                     // If we don't break that's gonna turn into a bunch of dialogs
-                    // which actually happens in parallel
+                    // which actually happen in parallel
                     break;
                 }
             }
@@ -251,6 +253,7 @@ public:
             travels.clear();
             police_alerts.clear();
             collisions_info.clear();
+            checked_ids.clear();
 
             auto elapsed = std::chrono::high_resolution_clock::now() - start;
 
