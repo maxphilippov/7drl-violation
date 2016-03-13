@@ -354,4 +354,40 @@ auto outro_dialog(PlayerInput & input, MapSize const& screen)
     return root;
 }
 
+auto nothing_to_do_dialog()
+{
+    auto root = DialogNode {
+        "There's nothing to do here", {}
+    };
+    
+    return root;
+}
+
+auto tile_to_interaction(MapTile tile,
+                         IDData const& id,
+                         WorldPosition &loc,
+                         PlayerInput & input,
+                         std::vector<district_id_type> neighbour_districts,
+                         int turn_counter)
+{
+    DialogNode r;
+    switch(tile) {
+        case Bar:
+            r = bar_interaction();
+            break;
+        case Clinic:
+            r = clinic_interaction(loc);
+            break;
+        case Repairs:
+            r = repair_station_interaction(id);
+            break;
+        case Station:
+            r = station_travel_dialog(loc, id, input, neighbour_districts, turn_counter);
+        default:
+            r = nothing_to_do_dialog();
+            break;
+    }
+    return r;
+}
+
 #endif /* dialog_h */

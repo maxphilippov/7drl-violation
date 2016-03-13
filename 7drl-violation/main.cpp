@@ -149,6 +149,8 @@ public:
 
             auto level_bounds = city.bounds();
 
+            auto current_id = items.get_id();
+
             auto turn_counter = time.current_turn();
 
             auto current_district_id = city.get_current_district_id();
@@ -194,13 +196,26 @@ public:
                         render_help();
                         break;
                     case 't':
+                    {
                         auto pd = phone_user_interface(player,
-                                                       items.get_id(),
+                                                       current_id,
                                                        input_manager,
                                                        neighbour_districts,
                                                        battery.get_charge(),
                                                        turn_counter);
                         dialogs.push_back(pd);
+                    }
+                        break;
+                    case 'e':
+                    {
+                        auto d = tile_to_interaction(city.get(player.pos),
+                                                     current_id,
+                                                     player,
+                                                     input_manager,
+                                                     neighbour_districts,
+                                                     turn_counter);
+                        dialogs.push_back(d);
+                    }
                         break;
                 }
             }
@@ -208,7 +223,7 @@ public:
             for (auto const& c: collisions_info) {
                 if (c.first == player_id || c.second == player_id) {
                     dialogs.push_back(
-                        police_officer_interaction(player, items.get_id(), police)
+                        police_officer_interaction(player, current_id, police)
                     );
                     // If we don't break that's gonna turn into a bunch of dialogs
                     // which actually happens in parallel
