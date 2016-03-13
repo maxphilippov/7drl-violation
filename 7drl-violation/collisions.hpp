@@ -19,8 +19,6 @@
 #include "position.hpp"
 #include "city.hpp"
 
-#include "quadtree.hpp"
-
 std::unordered_set<MapTile> unpassable_tiles = {
     MapTile::Wall
 };
