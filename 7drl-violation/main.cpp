@@ -125,8 +125,7 @@ public:
             clear();
 
             if (exit_buttons.count(input) > 0) {
-                // FIXME: auto exit = confirmation_screen(screen_size, "Are you sure you want to exit?");
-                auto exit = true; // autoexit for debugging
+                auto exit = confirmation_screen(screen_size, "Are you sure you want to exit?");
                 if (exit) {
                     break;
                 }
@@ -222,7 +221,7 @@ public:
 
             render_log(screen_size, message_log);
 
-            police.record_crimes(police_alerts, message_log);
+            police.record_crimes(police_alerts, message_log, turn_counter);
 
             if (state.discharge() == 0) {
                 dialogs.push_back(no_charge_dialog(state));
@@ -312,8 +311,6 @@ private:
 };
 
 int main(int argc, const char * argv[]) {
-    
-    // FIXME: Reduce screen size to 20, 20 instead of any kind of vision control
     Game g(80, 20);
     
     g.run();

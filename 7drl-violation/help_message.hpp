@@ -27,6 +27,8 @@ std::string build_help_message() {
     ss << "\n-Tips:";
 
     ss << "\nID is the key. You have one ID attached to you, but obviously it's an ID of a criminal. So you need a magical phone with a new ID attached, that should work for a while.";
+
+    ss << "\n\nEveryone in this city can loan money except shady figures like you and the fake IDs you're gonna get. So try to not overdraft if you don't want any trouble with law.";
     ss << "\n\nCrowds are like shadows, if you enter a crowd police will lose direct sight of you.";
 
     ss << "\n-Legend:";

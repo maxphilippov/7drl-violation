@@ -15,6 +15,7 @@
 #include "random.hpp"
 
 #include "basic_types.hpp"
+#include "message_log.hpp"
 
 #include "city.hpp"
 #include "time.hpp"
@@ -132,7 +133,7 @@ public:
         return 0;
     }
 
-    auto record_crimes(std::vector<PoliceAlert> const& alerts, std::vector<std::string> & message_log) {
+    auto record_crimes(std::vector<PoliceAlert> const& alerts, std::vector<std::string> & message_log, int turn_counter) {
         for(auto const& a: alerts) {
             auto id = a.id;
             auto level = a.violation_level;
@@ -140,7 +141,7 @@ public:
             auto it = criminal_records.find(id);
 
             // FIXME:
-            message_log.push_back("DEBUG: Registered crime");
+            message_log.push_back(format_message_log("DEBUG: Registered crime", turn_counter));
 
             if (it != std::end(criminal_records)) {
                 it->second.violation_level += level;

@@ -8,6 +8,8 @@
 #ifndef time_h
 #define time_h
 
+#include <cstdlib>
+
 class Hours
 {
     float h;
@@ -22,6 +24,12 @@ public:
 
 auto turns_to_hours(int turns) {
     return Hours{ static_cast<float>(turns) / Hours::turns_in_hour };
+}
+
+auto turns_to_days_hours(int turns) {
+    auto r = std::div(turns, Hours::turns_in_hour * 24);
+
+    return std::pair<int, int>{r.quot, r.rem};
 }
 
 auto late_hours(int current_turn) {

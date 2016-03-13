@@ -42,6 +42,8 @@ namespace utility
             } } );
         }
 
+        replies.push_back({ "Quit", { "Have a nice day, miss" } });
+
         return replies;
     }
 }
@@ -54,7 +56,7 @@ auto bar_interaction(GameState & state,
         "Bar is empty, no shady figures around", {
             {
                 "Look for someone who can get you a fake ID", {
-                    "You've found a guy", {
+                    "You've found a guy, he offers a random id for 3000", {
                         {
                             "Purchase <this will replace your current fake ID>", {
                                 "You paid for ID",
@@ -62,7 +64,7 @@ auto bar_interaction(GameState & state,
                                 [&state]() {
                                     state.purchase_fake_id();
                                 }
-                            },
+                            }
                         },
                         {
                             "Leave", {
@@ -378,12 +380,14 @@ auto phone_user_interface(GameState & state,
 
     ss.precision(2);
 
-    ss << turns_to_hours(turn_counter) << " hours passed.";
+    auto dh = turns_to_days_hours(turn_counter);
+    ss << "d" << dh.first << "h" << dh.second;
 
-    ss << "Battery is gonna last for " << battery_charge << " hours (" << battery_percent << "%%)";
+    ss << " Battery: (" << battery_percent << "%% left (" << battery_charge << " hours)";
 
-    // FIXME: Write only fake ID
-    ss << "Using a fake id: " << data.name << "," << IDData::type_to_string(data.type) << ".";
+    ss << " ID: " << data.name << "," << IDData::type_to_string(data.type);
+
+    ss << " Balance: " << data.balance;
 
     auto travel_options = DialogNode::Replies{};
 
