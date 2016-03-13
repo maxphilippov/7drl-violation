@@ -50,8 +50,8 @@ class CityManager
         ++next_district_id;
     }
 public:
-    CityManager(MapSize size) :
-    district_count(5),
+    CityManager(MapSize size, int districts) :
+    district_count(districts),
     size{ size }
     {
         used_districts.reserve(district_count);
@@ -82,7 +82,7 @@ public:
     const auto get(Position const& pos) const
     {
         auto idx = get_map_position(district_map, size, pos);
-        return district_map[idx];
+        return district_map.at(idx);
     }
 
     const auto get(int x, int y) const
@@ -105,7 +105,7 @@ public:
         auto it = std::transform(paths.first,
                                  paths.second,
                                  std::begin(n),
-                                 [](auto const& p) {
+                                 [&n](auto const& p) {
                                      return p.second;
                                  });
 
@@ -135,6 +135,8 @@ public:
         district_map = generate(seed, size);
         const auto player = WorldPosition { id, { 2, 2 } };
 
+
+        current_district = id;
         return player;
     }
 

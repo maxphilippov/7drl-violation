@@ -1,12 +1,12 @@
 //
-//  player_commands.hpp
+//  game_state.hpp
 //  7drl-violation
 //
 //  Copyright © 2016 Max Philippov
 //
 
-#ifndef player_commands_h
-#define player_commands_h
+#ifndef game_state_h
+#define game_state_h
 
 #include <sstream>
 #include <vector>
@@ -19,7 +19,7 @@
 
 // Maybe it should be called GameActions or GameState and probably hold these
 // members not by reference, but fully own them
-class PlayerInput
+class GameState
 {
     BatteryManager battery;
     Timeline& time;
@@ -28,7 +28,7 @@ class PlayerInput
 
     bool game_done = false;
 public:
-    PlayerInput(Timeline & time,
+    GameState(Timeline & time,
                 std::vector<district_id_type> & travels) :
     time(time),
     travels(travels) {}
@@ -110,4 +110,4 @@ public:
     }
 };
 
-#endif /* player_commands_h */
+#endif /* game_state_h */

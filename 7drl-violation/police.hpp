@@ -62,13 +62,11 @@ class PoliceManager
     void spawn(CollisionManager & collisions,
                Bounds const& simulation_bounds)
     {
-
-        const auto w = simulation_bounds.maxx - simulation_bounds.minx;
-        const auto h = simulation_bounds.maxy - simulation_bounds.miny;
+        auto const& sb = simulation_bounds;
         // spawn new PO near some point of interest
         // FIXME: don't spawn in player vision range
-        const auto x = generate_random_int(std::max(simulation_bounds.minx, 0), w);
-        const auto y = generate_random_int(std::max(simulation_bounds.miny, 0), h);
+        const auto x = generate_random_int(sb.minx, sb.maxx);
+        const auto y = generate_random_int(sb.miny, sb.maxy);
         const auto pos = Position{ x, y };
 
         const auto missionTarget = Position { x + 5, y + 5 };
@@ -110,7 +108,7 @@ public:
         if (turn_count % nap_interval != 0 || alert_mode) {
             std::remove_if(std::begin(cops_on_the_street),
                            std::end(cops_on_the_street),
-                           [&collisions, &player, &city] (auto i) {
+                           [&simulation_bounds, &collisions, &player, &city] (auto i) {
                                auto p = collisions.get_position(i);
                                if (!p.first) return true;
 

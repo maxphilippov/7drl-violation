@@ -29,7 +29,7 @@
 #include "position.hpp"
 #include "timeline.hpp"
 
-#include "player_commands.hpp"
+#include "game_state.hpp"
 
 const std::unordered_set<char> actions = {
     'h', 'j', 'k', 'l', // Movement
@@ -39,15 +39,6 @@ const std::unordered_set<char> actions = {
 const std::unordered_set<char> exit_buttons = {
     'q', 'Q'
 };
-
-const auto helpMessage = build_help_message();
-
-void render_help()
-{
-    printw(helpMessage.c_str());
-
-    getch();
-}
 
 class Game
 {
@@ -73,7 +64,7 @@ public:
     screen_size{ width, height },
     half_size{ width / 2, height / 2 },
     player_id{ 0 },
-    city{ MapSize { 512, 512 } },
+    city{ MapSize { 512, 512 }, 5 },
     crowds{ city.bounds() }
     {
         initscr();
@@ -116,7 +107,7 @@ public:
 
         std::vector<ActorCollisionInfo> collisions_info;
 
-        PlayerInput input_manager{
+        GameState game_state{
             time,
             travels
         };
@@ -131,7 +122,7 @@ public:
 
         auto input = '\0';
 
-        while(!input_manager.is_done()) {
+        while(!game_state.is_done()) {
             auto start = std::chrono::high_resolution_clock::now();
             clear();
 
@@ -153,8 +144,10 @@ public:
 
             auto pos = player.pos;
             auto player_interest = Bounds {
-                pos.x - screen_size.width, pos.y - screen_size.width,
-                pos.x + screen_size.height, pos.y + screen_size.height
+                std::max(pos.x - screen_size.width, 0),
+                std::max(pos.y - screen_size.height, 0),
+                std::min(pos.x + screen_size.width, level_bounds.width),
+                std::min(pos.y + screen_size.height, level_bounds.height)
             };
 
             if (actions.count(input) != 0) {
@@ -192,7 +185,7 @@ public:
                         break;
                     case 't':
                     {
-                        auto pd = phone_user_interface(input_manager,
+                        auto pd = phone_user_interface(game_state,
                                                        police_alerts,
                                                        player,
                                                        neighbour_districts,
@@ -204,7 +197,7 @@ public:
                     {
                         auto d = tile_to_interaction(city.get(player.pos),
                                                      player,
-                                                     input_manager,
+                                                     game_state,
                                                      neighbour_districts,
                                                      turn_counter);
                         dialogs.push_back(d);
@@ -216,7 +209,7 @@ public:
             for (auto const& c: collisions_info) {
                 if (c.first == player_id || c.second == player_id) {
                     dialogs.push_back(
-                        police_officer_interaction(input_manager, police, player)
+                        police_officer_interaction(game_state, police, player)
                     );
                     // If we don't break that's gonna turn into a bunch of dialogs
                     // which actually happens in parallel
@@ -230,12 +223,12 @@ public:
 
             police.record_crimes(police_alerts, message_log);
 
-            if (input_manager.discharge() == 0) {
-                dialogs.push_back(no_charge_dialog(input_manager));
+            if (game_state.discharge() == 0) {
+                dialogs.push_back(no_charge_dialog(game_state));
             }
 
             if (win) {
-                dialogs.push_back(outro_dialog(input_manager, screen_size));
+                dialogs.push_back(outro_dialog(game_state, screen_size));
             }
 
             run_dialogs(screen_size, dialogs);

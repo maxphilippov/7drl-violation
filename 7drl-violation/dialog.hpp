@@ -15,7 +15,7 @@
 #include "basic_types.hpp"
 #include "interface.hpp"
 #include "interaction_types.hpp"
-#include "player_commands.hpp"
+#include "game_state.hpp"
 
 #include "police.hpp"
 #include "city.hpp"
@@ -24,7 +24,7 @@
 namespace utility
 {
     auto travel_options(WorldPosition const& location,
-                        PlayerInput & input,
+                        GameState & state,
                         std::vector<district_id_type> const& ids,
                         int turn_counter)
     {
@@ -35,9 +35,9 @@ namespace utility
             ss << "District #" << id;
             replies.push_back({ ss.str(), {
                 "", {},
-                [&input, &location, id]() {
-                    input.pay_for_something(location, 1000);
-                    input.travel(id);
+                [&state, &location, id]() {
+                    state.pay_for_something(location, 1000);
+                    state.travel(id);
                 }
             } } );
         }
@@ -70,7 +70,7 @@ auto clinic_interaction(WorldPosition const& loc)
     return root;
 }
 
-auto repair_station_interaction(PlayerInput & input,
+auto repair_station_interaction(GameState & state,
                                 WorldPosition const& loc)
 {
     std::ostringstream ss;
@@ -88,8 +88,8 @@ auto repair_station_interaction(PlayerInput & input,
                             "Pay", {
                                 "",
                                 {},
-                                [&input, &loc, full_charge_price]() {
-                                    input.pay_for_charge(loc, full_charge_price);
+                                [&state, &loc, full_charge_price]() {
+                                    state.pay_for_charge(loc, full_charge_price);
                                 }
                             }
                         },
@@ -128,11 +128,11 @@ auto cantina_interaction(IDData const& id)
 }
 
 // Constant declarations
-auto police_officer_interaction(PlayerInput & input,
+auto police_officer_interaction(GameState & state,
                                 PoliceManager & police,
                                 WorldPosition const& location)
 {
-    auto id = input.get_id();
+    auto id = state.get_id();
     auto root = DialogNode {
         "Ma'am, can I check your id, please?",
         {
@@ -153,7 +153,7 @@ auto police_officer_interaction(PlayerInput & input,
                             "<You stunned poor guy>", {}
                         } },
                         { "Punch him back (excessive)", {
-                            "<You killed poor guy>", {}, [&input]() { input.discharge(20); }
+                            "<You killed poor guy>", {}, [&state]() { state.discharge(20); }
                         } },
                         { "Run away", {} },
                         { "Run away on steroids", {} }
@@ -166,28 +166,28 @@ auto police_officer_interaction(PlayerInput & input,
     return root;
 }
 
-auto station_travel_dialog(PlayerInput & input,
+auto station_travel_dialog(GameState & state,
                            WorldPosition const& location,
                            std::vector<district_id_type> neighbour_districts,
                            int turn_counter)
 {
-    auto data = input.get_id();
+    auto data = state.get_id();
     auto root = DialogNode {
         "Where to? It's one-way ticket",
-        utility::travel_options(location, input, neighbour_districts, turn_counter)
+        utility::travel_options(location, state, neighbour_districts, turn_counter)
     };
 
     return root;
 }
 
-auto phone_user_interface(PlayerInput & input,
+auto phone_user_interface(GameState & state,
                           std::vector<PoliceAlert> & police_alerts,
                           WorldPosition const& loc,
                           std::vector<district_id_type> neighbour_districts,
                           int turn_counter)
 {
-    auto data = input.get_id();
-    auto battery_charge = input.get_charge();
+    auto data = state.get_id();
+    auto battery_charge = state.get_charge();
     std::ostringstream ss;
 
     ss.precision(1);
@@ -211,7 +211,7 @@ auto phone_user_interface(PlayerInput & input,
                             "Submit", {
                                 "",
                                 {},
-                                [&input, &loc]() { input.start_id_check(loc); }
+                                [&state, &loc]() { state.start_id_check(loc); }
                             }
                         },
                         {
@@ -227,7 +227,7 @@ auto phone_user_interface(PlayerInput & input,
                 "Order tickets", {
                     "To get on a train you'll need to pass a full ID check",
                     {},
-                    [&input, &loc]() { input.pay_for_something(loc, 3000); }
+                    [&state, &loc]() { state.pay_for_something(loc, 3000); }
                 }
             },
             {
@@ -242,7 +242,7 @@ auto phone_user_interface(PlayerInput & input,
             },
             {
                 "Toggle fake ID usage", {
-                    "", {}, [&input]() { input.toggle_fake_id(); }
+                    "", {}, [&state]() { state.toggle_fake_id(); }
                 }
             },
             {
@@ -279,7 +279,7 @@ auto intro_dialog()
     return root;
 }
 
-auto prison_dialog(PlayerInput & input)
+auto prison_dialog(GameState & state)
 {
     auto root = DialogNode {
         "You can say that was close, but they got you", {
@@ -287,8 +287,8 @@ auto prison_dialog(PlayerInput & input)
                 "<Continue>", {
                     "Bet that's gonna be hard to explain why you killed him",
                     {},
-                    [&input]() {
-                        input.end_game();
+                    [&state]() {
+                        state.end_game();
                     }
                 }
             }
@@ -298,7 +298,7 @@ auto prison_dialog(PlayerInput & input)
     return root;
 }
 
-auto death_dialog(PlayerInput & input)
+auto death_dialog(GameState & state)
 {
     auto root = DialogNode {
         "Well you're dead now, at least they couldn't get you", {
@@ -306,8 +306,8 @@ auto death_dialog(PlayerInput & input)
                 "<Continue>", {
                     "",
                     {},
-                    [&input]() {
-                        input.end_game();
+                    [&state]() {
+                        state.end_game();
                     }
                 }
             }
@@ -317,7 +317,7 @@ auto death_dialog(PlayerInput & input)
     return root;
 }
 
-auto no_charge_dialog(PlayerInput & input)
+auto no_charge_dialog(GameState & state)
 {
     auto root = DialogNode {
         "Your battery is done, you're not a human after all", {
@@ -329,8 +329,8 @@ auto no_charge_dialog(PlayerInput & input)
                             "<Continue>", {
                                 "Let's skip that part when they ask you why you did that",
                                 {},
-                                [&input]() {
-                                    input.end_game();
+                                [&state]() {
+                                    state.end_game();
                                 }
                             }
                         }
@@ -343,7 +343,7 @@ auto no_charge_dialog(PlayerInput & input)
     return root;
 }
 
-auto welcome_to_a_new_life_dialog(PlayerInput & input, std::string const& name)
+auto welcome_to_a_new_life_dialog(GameState & state, std::string const& name)
 {
     std::ostringstream ss;
 
@@ -355,8 +355,8 @@ auto welcome_to_a_new_life_dialog(PlayerInput & input, std::string const& name)
                 "<Continue>", {
                     "Anyway, why you did this?",
                     {},
-                    [&input]() {
-                        input.end_game();
+                    [&state]() {
+                        state.end_game();
                     }
                 }
             }
@@ -366,17 +366,17 @@ auto welcome_to_a_new_life_dialog(PlayerInput & input, std::string const& name)
     return root;
 }
 
-auto outro_dialog(PlayerInput & input, MapSize const& screen)
+auto outro_dialog(GameState & state, MapSize const& screen)
 {
     auto root = DialogNode {
         "You slipped away, now you're safe", {
             {
                 "<Continue>", {
                     "", {},
-                    [&input, &screen]() {
+                    [&state, &screen]() {
                         auto name = prompt("What's your name: ");
 
-                        render_dialog(screen, welcome_to_a_new_life_dialog(input, name));
+                        render_dialog(screen, welcome_to_a_new_life_dialog(state, name));
                     }
                 }
             }
@@ -397,7 +397,7 @@ auto nothing_to_do_dialog()
 
 auto tile_to_interaction(MapTile tile,
                          WorldPosition &loc,
-                         PlayerInput & input,
+                         GameState & state,
                          std::vector<district_id_type> neighbour_districts,
                          int turn_counter)
 {
@@ -410,10 +410,10 @@ auto tile_to_interaction(MapTile tile,
             r = clinic_interaction(loc);
             break;
         case Repairs:
-            r = repair_station_interaction(input, loc);
+            r = repair_station_interaction(state, loc);
             break;
         case Station:
-            r = station_travel_dialog(input, loc, neighbour_districts, turn_counter);
+            r = station_travel_dialog(state, loc, neighbour_districts, turn_counter);
         default:
             r = nothing_to_do_dialog();
             break;
