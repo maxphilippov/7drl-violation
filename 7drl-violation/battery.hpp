@@ -15,7 +15,7 @@ public:
     const static int max_charge;
     BatteryManager(int charge = max_charge) : current_charge(charge) {}
 
-    auto get_charge() const { return current_charge / max_charge * 100; }
+    auto get_charge() const { return static_cast<float>(current_charge) / max_charge * 100; }
 
     auto charge(int amount)
     {

@@ -94,7 +94,10 @@ auto repair_station_interaction(PlayerInput & input,
                             }
                         },
                         {
-                            "No, thanks", {}
+                            "No, thanks", {
+                                "Have a nice day, miss!",
+                                {}
+                            }
                         }
                     }
                 }
@@ -191,10 +194,10 @@ auto phone_user_interface(PlayerInput & input,
 
     ss << turns_to_hours(turn_counter) << " hours passed.";
 
-    ss << "Your battery is " << battery_charge << "\% charged";
+    ss << "Battery: " << battery_charge << "%";
 
     // FIXME: Write only fake ID and set connection type
-    ss << "You're under id, " << data.name << ". Your connection is public.";
+    ss << "Using a fake id: " << data.name << ". Your connection is public.";
 
     auto travel_options = DialogNode::Replies{};
 
