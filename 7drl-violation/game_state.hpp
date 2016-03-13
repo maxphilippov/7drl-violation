@@ -74,7 +74,7 @@ public:
 
     auto pay_anonymously(int price)
     {
-        auto balance = items.pay(price);
+        auto balance = items.anonymous_pay(price);
 
         return balance;
     }

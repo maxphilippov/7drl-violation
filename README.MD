@@ -8,7 +8,7 @@ Had to dust off my C++ skills (sorry, no makefile), picked `ncurses` (OS X) and 
 
 For the sake of history this repo should have tag `7drl` for the last commit I managed to push before the deadline.
 
-Due to a lack of time game turned out to be like ®Watchdogs™ cause you use your phone for everything except stunning police officers.
+Due to a lack of time game turned out to be more like a Montypythonpunk, sketchy comedy about police officers losing you right behind the corner, crazy mob destroying walls on the street. I publish this more as an exercise in game design.
 
 Here's unedited pitch document I wrote while preparing to the competition (with bad grammar etc.):
 

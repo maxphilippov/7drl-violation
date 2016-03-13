@@ -55,7 +55,6 @@ public:
     size{ size }
     {
         used_districts.reserve(district_count);
-        // FIXME: Generate paths and make bidirectional
         district_paths = {
             { 0, 1 },
             { 0, 2 },
@@ -65,7 +64,9 @@ public:
             { 1, 0 },
             { 2, 1 },
             { 2, 0 },
-            { 3, 0 }
+            { 3, 4 },
+            { 4, 1 },
+            { 4, 2 }
         };
     }
 

@@ -36,15 +36,12 @@ void render_log(MapSize const& screen, std::vector<std::string> const& message_l
     if (!message_log.empty()) {
         auto height = 7;
         auto y_offset = 2;
-        //        const auto b = Bounds{
-        //            0, screen.height + y_offset,
-        //            screen.width, screen.height
-        //        };
-        //        const auto w = WindowHandler{ b };
 
-        auto end = std::crbegin(message_log) + height;
+        auto end = std::crend(message_log);
 
-        for(auto it = std::rbegin(message_log); it != end; ++it) {
+        auto i = 0;
+
+        for(auto it = std::rbegin(message_log); it != end && i != height; ++it, ++i) {
             mvprintw(screen.height + y_offset, 3, it->c_str());
             y_offset += 1;
         }

@@ -23,8 +23,6 @@ class InventoryManager
     IDGenerator gen;
 
     bool use_fake = true;
-
-    std::vector<int> player_posessions; // bloodpacks, ???
 public:
     InventoryManager() :
     realID{player_real_identity},
@@ -61,6 +59,14 @@ public:
     }
 
     auto pay(int amount)
+    {
+        auto &balance = (use_fake && fakeID != nullptr)? fakeID->balance : realID.balance;
+        balance -= amount;
+
+        return balance;
+    }
+
+    auto anonymous_pay(int amount)
     {
         realID.balance -= amount;
 

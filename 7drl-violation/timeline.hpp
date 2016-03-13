@@ -13,6 +13,7 @@
 #include "time.hpp"
 #include "id.hpp"
 #include "interaction_types.hpp"
+#include "police.hpp"
 
 struct PurchaseCheck
 {
@@ -89,7 +90,8 @@ public:
         ID_checks.push(c);
     }
     
-    void update(std::vector<PoliceAlert> & police_alerts,
+    void update(PoliceManager & police,
+                std::vector<PoliceAlert> & police_alerts,
                 std::vector<identity_id_type> & checked_ids)
     {
         using namespace police_alerts;
@@ -107,8 +109,7 @@ public:
             auto job = ID_checks.front();
             while(job.finish_by_turn == turn_counter) {
                 ID_checks.pop();
-                // FIXME: Check police records
-                if (true) {
+                if (police.check_crime_history(job.data.id, job.pos) > 10) {
                     police_alerts.push_back(attempt_to_escape(job.data.id, job.pos));
                 } else {
                     checked_ids.push_back(job.data.id);
@@ -121,6 +122,7 @@ public:
 };
 
 const Hours Timeline::purchase_check_default_time = Hours { 1.5f };
-const Hours Timeline::id_check_default_time = Hours { 12.0f };
+// FIXME:
+const Hours Timeline::id_check_default_time = Hours { 0.5f };
 
 #endif /* timeline_h */

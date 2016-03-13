@@ -174,7 +174,7 @@ public:
 
                 // Adds interaction for completed jobs and probably creates something
                 // like CityChange with data on what to change in city before next turn
-                time.update(police_alerts, checked_ids);
+                time.update(police, police_alerts, checked_ids);
 
                 state.record_checked_ids(checked_ids);
             } else {
@@ -199,6 +199,7 @@ public:
                                                      state,
                                                      police_alerts,
                                                      neighbour_districts,
+                                                     current_district_id,
                                                      turn_counter);
                         dialogs.push_back(d);
                     }
@@ -224,8 +225,7 @@ public:
             police.record_crimes(police_alerts, message_log);
 
             if (state.discharge() == 0) {
-                // FIXME:
-//                dialogs.push_back(no_charge_dialog(state));
+                dialogs.push_back(no_charge_dialog(state));
             }
 
             if (state.is_in_jail()) {
@@ -247,7 +247,6 @@ public:
                 collisions.restart();
                 player_id = collisions.add_moving_entity(player.pos);
                 police.restart(collisions, player_interest);
-                // FIXME: Change time constant
                 time.skip_time({ 1.5f });
             }
 

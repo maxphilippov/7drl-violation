@@ -257,16 +257,75 @@ auto police_officer_interaction(GameState & state,
     return root;
 }
 
+
+auto leaving_dialog(GameState & state)
+{
+    auto replies = DialogNode::Replies {};
+
+    auto root = DialogNode{
+        "Can I help you ma'am?", {
+            {
+                "Yes, please, the train is waiting for me", {
+                    "Ok, let me see... Yeah, you're perfectly fine to go", {
+                        {
+                            "Thank you", {
+                                "Hope you enjoy the trip", {
+                                    {
+                                        "You bet I will", {
+                                            "Have a nice day!", {}, [&state]() { state.leave_on_train(); }
+                                        }
+                                    }
+                                }
+
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    };
+    
+    return root;
+}
+
 auto station_travel_dialog(GameState & state,
-                           WorldPosition const& location,
+                           WorldPosition const& loc,
                            std::vector<district_id_type> const& neighbour_districts,
+                           district_id_type district,
                            int turn_counter)
 {
     auto data = state.get_id();
     auto root = DialogNode{
         "Where to? It's one-way ticket",
-        utility::travel_options(location, state, neighbour_districts, turn_counter)
+        utility::travel_options(loc, state, neighbour_districts, turn_counter)
     };
+
+    if (district == 4) {
+        root.replies.push_back({
+            "Get a ticket for a train", {
+                "To get on a train you'll need to pass a full ID check",
+                {},
+                [&state, &loc]() { state.purchase_train_ticket(loc); }
+
+            }
+        });
+
+        if (state.has_ticket(data.id)) {
+            root.replies.push_back({
+                "Start ID check", {
+                    "Ok, you will have to wait a bit, we will call you",
+                    {},
+                    [&state, &loc]() { state.start_id_check(loc); }
+
+                }
+            });
+            if (state.has_id_checked(data.id)) {
+                root.replies.push_back({
+                    "<Train awaits>", leaving_dialog(state)
+                });
+            }
+        }
+    }
 
     return root;
 }
@@ -282,6 +341,7 @@ auto tile_to_interaction(MapTile tile,
                          GameState & state,
                          std::vector<PoliceAlert> & police_alerts,
                          std::vector<district_id_type> const& neighbour_districts,
+                         district_id_type district,
                          int turn_counter)
 {
     DialogNode r;
@@ -296,7 +356,7 @@ auto tile_to_interaction(MapTile tile,
             r = repair_station_interaction(state, police_alerts, loc);
             break;
         case Station:
-            r = station_travel_dialog(state, loc, neighbour_districts, turn_counter);
+            r = station_travel_dialog(state, loc, neighbour_districts, district, turn_counter);
             break;
         default:
             r = nothing_to_do_dialog();
@@ -350,13 +410,6 @@ auto phone_user_interface(GameState & state,
                 }
             },
             {
-                "Order tickets", {
-                    "To get on a train you'll need to pass a full ID check",
-                    {},
-                    [&state, &loc]() { state.pay_for_something(loc, 3000); }
-                }
-            },
-            {
                 // Adds a point of interest to police for anonymous crime
                 "Call police", {
                     // FIXME:
@@ -385,10 +438,22 @@ auto intro_dialog()
         "Your master is dead, the blood is on your hands", {
             {
                 "<Continue>", {
-                    "Hurry up, they are looking for a female android", {
+                    "Find a bar, purchase a fake ID with the money you have", {
                         {
                             "<Continue>", {
-                                "When in doubt press ?", {}
+                                "Then get to district #5 and purchase a ticket for a train", {
+                                    {
+                                        "<Continue>", {
+                                            "Now hurry up, they are looking for a female android", {
+                                                {
+                                                    "<Continue>", {
+                                                        "When in doubt press ?"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
@@ -396,6 +461,7 @@ auto intro_dialog()
             }
         }
     };
+    // YEP, it's a so called "arrow-syntax"
 
     return root;
 }
@@ -444,8 +510,7 @@ auto no_charge_dialog(GameState & state)
         "Your battery is done, you're not a human after all", {
             {
                 "<Continue>", {
-                    "You gotta recharge often, now they gonna get you",
-                    {
+                    "You gotta recharge often, now they gonna get you", {
                         {
                             "<Continue>", {
                                 "Let's skip that part when they ask you why you did that",
@@ -478,36 +543,6 @@ auto welcome_to_a_new_life_dialog(GameState & state, std::string const& name)
                     {},
                     [&state]() {
                         state.end_game();
-                    }
-                }
-            }
-        }
-    };
-
-    return root;
-}
-
-auto leaving_dialog(GameState & state)
-{
-    auto replies = DialogNode::Replies {};
-
-    auto root = DialogNode{
-        "Can I help you ma'am?", {
-            {
-                "Yes, please, the train is waiting for me", {
-                    "Ok, let me see... Yeah, you're perfectly fine to go", {
-                        {
-                            "Thank you", {
-                                "Hope you enjoy the trip", {
-                                    {
-                                        "You bet I will", {
-                                            "Have a nice day!", {}, [&state]() { state.leave_on_train(); }
-                                        }
-                                    }
-                                }
-
-                            }
-                        }
                     }
                 }
             }

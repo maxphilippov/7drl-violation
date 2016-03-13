@@ -35,14 +35,14 @@ namespace police_alerts
     auto purchase_balance_alert(identity_id_type id, WorldPosition const& pos)
     {
         return PoliceAlert {
-            id, pos, 3
+            id, pos, 60
         };
     }
 
     auto attempt_to_escape(identity_id_type id, WorldPosition const& pos)
     {
         return PoliceAlert {
-            id, pos, 20
+            id, pos, 200
         };
     }
 
