@@ -54,8 +54,12 @@ public:
         return gen.next(balance);
     }
 
-    auto legal_pay(int amount)
+    auto make_money(int amount)
     {
+        auto &balance = (use_fake && fakeID != nullptr)? fakeID->balance : realID.balance;
+        balance += amount;
+
+        return balance;
     }
 
     auto pay(int amount)

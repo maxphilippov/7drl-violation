@@ -97,7 +97,6 @@ public:
 
     auto purchase_fake_id()
     {
-        // FIXME: Change price based on id type
         auto balance = pay_anonymously(3000);
 
         auto id = items.generate_id();
@@ -116,6 +115,12 @@ public:
     auto get_charge() const
     {
         return battery.get_charge();
+    }
+
+    // Oh wonderful C++
+    auto make_money(int amount)
+    {
+        items.make_money(amount);
     }
 
     auto get_charge_in_hours() const
@@ -157,7 +162,6 @@ public:
     auto purchase_train_ticket(WorldPosition const& pos)
     {
         auto id = get_id();
-        // FIXME: if id == 0 You're fked
         pay_for_something(pos, 7000);
         tickets.insert(id.id);
     }

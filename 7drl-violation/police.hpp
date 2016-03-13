@@ -60,7 +60,6 @@ class PoliceManager
     {
         auto const& sb = simulation_bounds;
         // spawn new PO near some point of interest
-        // FIXME: don't spawn in player vision range
         const auto x = generate_random_int(sb.minx, sb.maxx);
         const auto y = generate_random_int(sb.miny, sb.maxy);
         const auto pos = Position{ x, y };
@@ -139,13 +138,11 @@ public:
             auto level = a.violation_level;
             auto const& pos = a.pos;
             auto it = criminal_records.find(id);
-
-            // FIXME:
+            
             message_log.push_back(format_message_log("DEBUG: Registered crime", turn_counter));
 
             if (it != std::end(criminal_records)) {
                 it->second.violation_level += level;
-                // FIXME: Pass district id
                 it->second.last_known_location = pos;
             } else {
                 criminal_records.insert({id, { pos, level }});

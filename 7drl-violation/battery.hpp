@@ -39,7 +39,6 @@ public:
     }
 };
 
-// FIXME:
 const int BatteryManager::max_charge = 500;
 const int BatteryManager::default_drain = 2;
 

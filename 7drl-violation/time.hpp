@@ -40,4 +40,8 @@ auto late_hours(int current_turn) {
     return 19 < hour_in_day || hour_in_day < 7;
 }
 
+
+const Hours purchase_check_default_time = Hours { 1.5f };
+const Hours id_check_default_time = Hours { 12.0f };
+
 #endif /* time_h */

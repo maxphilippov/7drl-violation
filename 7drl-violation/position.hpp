@@ -123,7 +123,6 @@ struct Velocity
     int y;
 };
 
-// FIXME: not working as I expected
 auto towards(Position const& a, Position const& b) {
     return Velocity {
         sgn(b.x - a.x),

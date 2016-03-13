@@ -32,9 +32,6 @@ struct IDCheck
 
 class Timeline
 {
-    static const Hours purchase_check_default_time;
-    static const Hours id_check_default_time;
-
     int turn_counter;
     std::queue<PurchaseCheck> purchases_checks;
     std::queue<IDCheck> ID_checks;
@@ -121,8 +118,5 @@ public:
     }
 };
 
-const Hours Timeline::purchase_check_default_time = Hours { 1.5f };
-// FIXME:
-const Hours Timeline::id_check_default_time = Hours { 0.5f };
 
 #endif /* timeline_h */

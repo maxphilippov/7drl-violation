@@ -85,12 +85,18 @@ auto clinic_interaction(GameState & state,
                         WorldPosition const& loc)
 {
     auto root = DialogNode{
-        "You walk down the hall and see a bloodpack lying right under your feet", {
+        "You walk down the hall and see a bank terminal and no one around", {
             {
-                "Steal a bloodpack", {
-                    "You've acquired a bloodpack, useful to fake injuries", {}
+                "Hack a terminal", {
+                    "<That phone can make wonders I guess>", {},
+                    [&state]() { state.make_money(5000); }
                 }
-            }
+            },
+                {
+                    "Leave", {
+                        "<Not like you're a criminal already>"
+                    }
+                }
         }
     };
 
@@ -132,31 +138,11 @@ auto repair_station_interaction(GameState & state,
                         },
                         {
                             "No, thanks", {
-                                "Have a nice day, miss!",
-                                {}
+                                "Have a nice day, miss!"
                             }
                         }
                     }
                 }
-            },
-            {
-                "Pay for repair", {}
-            }
-        }
-    };
-
-    return root;
-}
-
-auto cantina_interaction(IDData const& id)
-{
-    auto root = DialogNode{
-        "You are warmly welcomed", {
-            {
-                "Order a meal", {}
-            },
-            {
-                "Chat with people", {}
             }
         }
     };
@@ -199,7 +185,6 @@ auto po_inspection(GameState & state,
     if (violation_level < 50) {
         root.message = "Ok, you're good to go, thank you for understanding";
     } else {
-        // FIXME:
         root.message = "Sorry, ma'am, but I think you got to go with us";
         root.action = [&state]() { state.to_jail(); };
     }
@@ -304,7 +289,7 @@ auto station_travel_dialog(GameState & state,
 
     if (district == 4) {
         root.replies.push_back({
-            "Get a ticket for a train", {
+            "Get a ticket for a train for 7000", {
                 "To get on a train you'll need to pass a full ID check",
                 {},
                 [&state, &loc]() { state.purchase_train_ticket(loc); }
@@ -394,29 +379,9 @@ auto phone_user_interface(GameState & state,
     auto root = DialogNode {
         ss.str(), {
             {
-                "Start ID check", {
-                    "You're about to submit your id for checking",
-                    {
-                        {
-                            "Submit", {
-                                "",
-                                {},
-                                [&state, &loc]() { state.start_id_check(loc); }
-                            }
-                        },
-                        {
-                            "Abort", {
-                                "",
-                                {}
-                            }
-                        }
-                    }
-                }
-            },
-            {
                 // Adds a point of interest to police for anonymous crime
+                // Doesn't work
                 "Call police", {
-                    // FIXME:
                     "", {}, [&police_alerts, &loc]() {
                         police_alerts.push_back({0, loc, 3});
                     }

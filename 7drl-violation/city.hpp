@@ -101,8 +101,7 @@ public:
         auto n = std::vector<district_id_type>(district_paths.size());
 
         auto paths = district_paths.equal_range(id);
-
-        // FIXME: That doesn't work
+        
         auto it = std::transform(paths.first,
                                  paths.second,
                                  std::begin(n),

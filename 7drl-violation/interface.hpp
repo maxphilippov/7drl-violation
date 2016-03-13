@@ -77,8 +77,6 @@ void print_node(WINDOW * w, DialogNode const& d, int selected_node = 0)
 
     auto replies_count = static_cast<int>(d.replies.size());
 
-    // FIXME: Add scrolling
-
     for(auto const& r: d.replies) {
         if (idx == selected_node ) wattron(w, A_REVERSE);
         y_pos += 2;
