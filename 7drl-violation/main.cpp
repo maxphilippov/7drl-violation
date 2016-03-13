@@ -113,7 +113,7 @@ public:
         std::vector<PoliceAlert> police_alerts;
         // A vector of travels is pretty stupid
         std::vector<district_id_type> travels;
-        std::vector<DialogData> dialogs = {{ intro_dialog() }};
+        std::vector<DialogNode> dialogs = { intro_dialog() };
 
         std::vector<ActorCollisionInfo> collisions_info;
 
@@ -200,16 +200,16 @@ public:
                                                        neighbour_districts,
                                                        battery.get_charge(),
                                                        turn_counter);
-                        dialogs.push_back({ pd });
+                        dialogs.push_back(pd);
                         break;
                 }
             }
 
             for (auto const& c: collisions_info) {
                 if (c.first == player_id || c.second == player_id) {
-                    dialogs.push_back({
+                    dialogs.push_back(
                         police_officer_interaction(player, items.get_id(), police)
-                    });
+                    );
                     // If we don't break that's gonna turn into a bunch of dialogs
                     // which actually happens in parallel
                     break;
@@ -223,11 +223,11 @@ public:
             police.record_crimes(police_alerts, message_log);
 
             if (battery.discharge(1) == 0) {
-                dialogs.push_back({ no_charge_dialog(input_manager) });
+                dialogs.push_back(no_charge_dialog(input_manager));
             }
 
             if (win) {
-                dialogs.push_back({ outro_dialog(input_manager, screen_size) });
+                dialogs.push_back(outro_dialog(input_manager, screen_size));
             }
 
             run_dialogs(screen_size, dialogs);

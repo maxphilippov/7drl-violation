@@ -140,12 +140,12 @@ void render_dialog(MapSize const& screen, DialogNode const& root)
 }
 
 auto run_dialogs(MapSize const& screen_size,
-                 std::vector<DialogData> const& dialogs)
+                 std::vector<DialogNode> const& dialogs)
 {
 
     for(auto const& d: dialogs)
     {
-        render_dialog(screen_size, d.root);
+        render_dialog(screen_size, d);
     }
 }
 

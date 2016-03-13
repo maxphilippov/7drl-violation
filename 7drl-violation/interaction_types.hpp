@@ -23,11 +23,6 @@ struct DialogNode
     std::function<void()> action = []() {};
 };
 
-struct DialogData
-{
-    DialogNode root;
-};
-
 struct PoliceAlert
 {
     identity_id_type id;
