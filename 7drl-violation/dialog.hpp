@@ -184,14 +184,22 @@ auto police_officer_interaction(GameState & state,
                 "Refuse", {
                     "Ma'am, you're acting very suspicious. I think I got to take you back to police station\n<he gets wristbands>",
                     {
-                        { "Punch him back", {
-                            "<You stunned poor guy>", {}
-                        } },
-                        { "Punch him back (excessive)", {
-                            "<You killed poor guy>", {}, [&state]() { state.discharge(20); }
-                        } },
+                        {
+                            "Punch him back", {
+                                "<You stunned poor guy>", {}
+                            }
+                        },
+                        {
+                            "Punch him back (excessive)", {
+                                "<You killed poor guy>", {}, [&state]() { state.discharge(20); }
+                            }
+                        },
                         { "Run away", {} },
-                        { "Run away on steroids", {} }
+                        {
+                            "Run away on steroids", {
+                                "", {}, [&state]() { state.discharge(10); }
+                            }
+                        }
                     }
                 },
             }
@@ -260,14 +268,15 @@ auto phone_user_interface(GameState & state,
                           int turn_counter)
 {
     auto data = state.get_id();
-    auto battery_charge = state.get_charge();
+    auto battery_charge = state.get_charge_in_hours();
+    auto battery_percent = state.get_charge();
     std::ostringstream ss;
 
     ss.precision(1);
 
     ss << turns_to_hours(turn_counter) << " hours passed.";
 
-    ss << "Battery: " << static_cast<float>(battery_charge) << "%";
+    ss << "Battery is gonna last for " << battery_charge << "hours (" << battery_percent << "%%)";
 
     // FIXME: Write only fake ID and set connection type
     ss << "Using a fake id: " << data.name << "," << IDData::type_to_string(data.type) << ".";

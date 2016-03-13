@@ -8,12 +8,6 @@
 #ifndef district_h
 #define district_h
 
-#include <array>
-#include <random>
-#include <vector>
-
-#include "position.hpp"
-
 struct DistrictData
 {
     int seed;

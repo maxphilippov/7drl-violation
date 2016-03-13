@@ -139,7 +139,8 @@ public:
             auto pos = a.pos;
             auto it = criminal_records.find(id);
 
-            message_log.push_back("Registered crime");
+            // FIXME:
+            message_log.push_back("DEBUG: Registered crime");
 
             if (it != std::end(criminal_records)) {
                 it->second.violation_level += level;

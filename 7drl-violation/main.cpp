@@ -168,9 +168,9 @@ public:
                 // Produces collisions information
                 collisions.update(player_interest, city, collisions_info);
 
-                // FIXME: Should probably throw if we can't find a player,
-                // that would mean there's a mess up in code
-                player.pos = collisions.get_position(player_id).second;
+                auto player_pos_data = collisions.get_position(player_id);
+                if (!player_pos_data.first) throw "Unable to find player position, it's a bug";
+                player.pos = player_pos_data.second;
 
                 // Adds interaction for completed jobs and probably creates something
                 // like CityChange with data on what to change in city before next turn

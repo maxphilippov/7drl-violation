@@ -8,6 +8,8 @@
 #ifndef battery_h
 #define battery_h
 
+#include "time.hpp"
+
 class BatteryManager
 {
     int current_charge;
@@ -17,7 +19,11 @@ public:
     BatteryManager(int charge = max_charge) : current_charge(charge) {}
 
     auto get_charge() const {
-        return static_cast<float>(current_charge * 100.0f) / static_cast<float>(max_charge);
+        return current_charge * 100 / max_charge;
+    }
+
+    auto charge_in_hours() const {
+        return turns_to_hours(current_charge / default_drain);
     }
 
     auto charge(int amount = max_charge)

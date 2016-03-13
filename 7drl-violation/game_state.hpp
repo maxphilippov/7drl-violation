@@ -107,6 +107,11 @@ public:
         return battery.get_charge();
     }
 
+    auto get_charge_in_hours() const
+    {
+        return battery.charge_in_hours();
+    }
+
     auto toggle_fake_id()
     {
         items.toggle_fake();

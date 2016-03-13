@@ -42,7 +42,9 @@ typedef MapCells::size_type MapIndex;
 
 MapIndex get_map_position(MapCells const& map, MapSize const& size, Position const& pos)
 {
-    return pos.x + pos.y * size.width;
+    auto x = std::max(0, std::min(pos.x, size.width));
+    auto y = std::max(0, std::min(pos.y, size.height));
+    return x + y * size.width;
 }
 
 #endif /* map_h */
