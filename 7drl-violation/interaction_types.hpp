@@ -20,7 +20,13 @@ struct DialogNode
     typedef std::vector<std::pair<std::string, DialogNode>> Replies;
     std::string message;
     Replies replies;
-    std::function<void()> action = []() {};
+    std::function<void()> action;
+    DialogNode(std::string message = "",
+               Replies replies = {},
+               std::function<void()> action = []() {}) :
+    message(message),
+    replies(replies),
+    action(action) {}
 };
 
 struct PoliceAlert
